@@ -1,7 +1,11 @@
+// 6단계(글 목록)에서 실제 목록으로 바뀌는 자리. 지금은 글이 없을 때의 화면.
 export default function Home() {
   return (
-    <main className="flex flex-1 items-center justify-center p-4">
-      <h1 className="text-3xl">Nook</h1>
-    </main>
+    <section className="flex flex-1 flex-col justify-center py-16">
+      <p className="font-serif text-2xl leading-relaxed text-text">아직 적어 둔 글이 없어요.</p>
+      <p className="mt-3 text-base leading-relaxed text-text-muted">
+        떠오른 생각, 오늘 있었던 일, 잊고 싶지 않은 문장을 이곳에 하나씩 모아 두세요.
+      </p>
+    </section>
   );
 }
