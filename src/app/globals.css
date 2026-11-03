@@ -1,3 +1,166 @@
 @import "tailwindcss";
 
-/* 색상 토큰·폰트·낮/밤 테마는 2단계(디자인 기반)에서 CLAUDE.md 표대로 정의합니다. */
+/* ───────────────────────────────────────────────
+   색상 토큰 (CLAUDE.md 표와 같은 값)
+   - 기본은 낮 테마.
+   - 사용자가 고른 값이 없으면 시스템 설정(prefers-color-scheme)을 따른다.
+   - 사용자가 고르면 <html data-theme="light|dark"> 가 우선한다.
+   ─────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+  --bg: #f5eee3;
+  --surface: #fbf7f0;
+  --text: #3b2f26;
+  --text-muted: #6f6052;
+  --accent: #a3561f;
+  --accent-contrast: #fbf7f0;
+  --border: #e3d7c6;
+
+  /* 스탠드 불빛 색.
+     낮: 배경보다 밝은 surface 색으로 '종이가 밝아지는' 빛 → 모든 글자 대비가 오히려 올라간다.
+     밤: accent를 옅게 섞은 호박색 빛 (최대 지점에서도 본문 11.3 / 보조 5.7 / 포인트 6.9) */
+  --lamp: var(--surface);
+  /* 종이 결: 낮에는 살짝 어둡게 눌러 준다 */
+  --grain-opacity: 0.05;
+  --grain-blend: multiply;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #1e1914;
+    --surface: #28211b;
+    --text: #ede4d6;
+    --text-muted: #b0a291;
+    --accent: #e3a95f;
+    --accent-contrast: #1e1914;
+    --border: #3d332b;
+    --lamp: color-mix(in oklab, var(--accent) 11%, var(--bg));
+    --grain-opacity: 0.04;
+    --grain-blend: screen;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1e1914;
+  --surface: #28211b;
+  --text: #ede4d6;
+  --text-muted: #b0a291;
+  --accent: #e3a95f;
+  --accent-contrast: #1e1914;
+  --border: #3d332b;
+  --lamp: color-mix(in oklab, var(--accent) 11%, var(--bg));
+  --grain-opacity: 0.04;
+  --grain-blend: screen;
+}
+
+/* ───────────────────────────────────────────────
+   Tailwind 연결
+   기본 색상 팔레트(gray, blue...)를 모두 지워서
+   토큰이 아닌 색은 클래스로 쓸 수 없게 한다. (bg-bg, text-text-muted, text-accent ...)
+   ─────────────────────────────────────────────── */
+@theme inline {
+  --color-*: initial;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-border: var(--border);
+
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-serif: var(--font-noto-serif-kr), "RIDIBatang", "Nanum Myeongjo", serif;
+}
+
+/* ───────────────────────────────────────────────
+   기본 바탕
+   ─────────────────────────────────────────────── */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  /* 한글은 단어 중간에서 줄이 바뀌지 않게 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  transition:
+    background-color 240ms ease,
+    color 240ms ease;
+}
+
+/* 스탠드 불빛: 화면 위쪽 왼편에 따뜻한 빛이 고인다. 글자 뒤에 깔리므로 클릭을 막지 않는다. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 110% 75% at 30% -15%,
+    var(--lamp) 0%,
+    color-mix(in oklab, var(--lamp) 60%, transparent) 30%,
+    color-mix(in oklab, var(--lamp) 25%, transparent) 55%,
+    transparent 85%
+  );
+}
+
+/* 종이 결: 아주 미세한 노이즈. 글 가독성을 해치면 --grain-opacity를 0으로. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.3 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background-color: color-mix(in oklab, var(--accent) 28%, transparent);
+  color: var(--text);
+}
+
+/* 포커스 표시: 키보드로 이동할 때 불빛 색 테두리 */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* 낮/밤 토글 아이콘: 지금 테마에서 '바꿀 곳'을 보여준다 (낮이면 달, 밤이면 해) */
+.icon-day {
+  display: none;
+}
+:root[data-theme="dark"] .icon-day {
+  display: block;
+}
+:root[data-theme="dark"] .icon-night {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .icon-day {
+    display: block;
+  }
+  :root:not([data-theme="light"]) .icon-night {
+    display: none;
+  }
+}
+
+/* 움직임 줄이기를 켠 사용자에게는 전환 효과를 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
