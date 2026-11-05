@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { THEME_BG, THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
 
 const DARK_QUERY = "(prefers-color-scheme: dark)";
@@ -31,16 +31,22 @@ function applyTheme(theme: Theme) {
   } catch {
     // 사파리 개인정보 보호 모드 등에서는 저장이 안 될 수 있다. 이번 방문 동안만 적용된다.
   }
-  // 폰 주소창 색도 고른 테마에 맞춘다.
-  document
-    .querySelectorAll('meta[name="theme-color"]')
-    .forEach((meta) => meta.setAttribute("content", THEME_BG[theme]));
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
 export function ThemeToggle() {
   // 서버에서는 테마를 알 수 없으므로 null. 브라우저에서 hydration 직후 실제 값으로 바뀐다.
   const theme = useSyncExternalStore<Theme | null>(subscribe, getTheme, () => null);
+
+  // 폰 주소창 색(theme-color)을 실제 테마에 맞춘다.
+  // 서버 HTML의 theme-color는 시스템 설정 기준이라, 사용자가 반대 테마를 골라 두면
+  // 새로고침 직후 주소창만 다른 색이 된다 → 처음 불러올 때와 테마가 바뀔 때마다 동기화.
+  useEffect(() => {
+    if (theme === null) return;
+    document
+      .querySelectorAll('meta[name="theme-color"]')
+      .forEach((meta) => meta.setAttribute("content", THEME_BG[theme]));
+  }, [theme]);
   const next: Theme = theme === "dark" ? "light" : "dark";
   const label = theme === null ? "낮/밤 바꾸기" : next === "dark" ? "밤으로 바꾸기" : "낮으로 바꾸기";
 
