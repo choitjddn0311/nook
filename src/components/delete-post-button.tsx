@@ -1,5 +1,6 @@
 "use client";
 
+import { primaryButton, quietButton } from "@/lib/button-styles";
 import { useActionState, useRef } from "react";
 import { deletePost, type DeleteState } from "@/app/posts/[id]/actions";
 
@@ -14,7 +15,7 @@ export function DeletePostButton({ postId }: { postId: string }) {
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="inline-flex h-12 items-center rounded-lg px-4 text-base text-text-muted transition-[color,transform] duration-100 ease-out hover:text-text active:scale-[0.98]"
+        className={quietButton}
       >
         지우기
       </button>
@@ -45,14 +46,14 @@ export function DeletePostButton({ postId }: { postId: string }) {
             autoFocus
             onClick={() => dialogRef.current?.close()}
             disabled={pending}
-            className="inline-flex h-12 items-center rounded-lg px-4 text-base text-text-muted transition-[color,transform] duration-100 ease-out hover:text-text active:scale-[0.98]"
+            className={quietButton}
           >
             취소
           </button>
           <button
             type="submit"
             disabled={pending}
-            className="h-12 min-w-24 rounded-lg bg-accent px-5 text-base font-semibold text-accent-contrast transition-[transform,opacity] duration-100 ease-out active:scale-[0.98] disabled:opacity-60"
+            className={primaryButton}
           >
             {pending ? "지우는 중…" : "지우기"}
           </button>

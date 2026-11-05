@@ -1,12 +1,13 @@
 "use client";
 
+import { primaryButton } from "@/lib/button-styles";
 import { useActionState } from "react";
 import { login, type LoginState } from "./actions";
 
 const initialState: LoginState = { error: null, email: "" };
 
 const fieldClass =
-  "h-12 w-full rounded-lg bg-surface px-4 text-base text-text placeholder:text-text-muted outline-offset-2 transition-colors";
+  "h-11 w-full rounded-lg bg-surface px-4 text-base text-text placeholder:text-text-muted transition-shadow focus-visible:outline-none focus:shadow-[inset_0_0_0_2px_var(--accent)]";
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(login, initialState);
@@ -57,7 +58,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="h-12 w-full rounded-lg bg-accent text-base font-semibold text-accent-contrast transition-[transform,opacity] duration-100 ease-out active:scale-[0.98] disabled:opacity-60"
+        className={`${primaryButton} w-full`}
       >
         {pending ? "로그인하는 중…" : "로그인"}
       </button>

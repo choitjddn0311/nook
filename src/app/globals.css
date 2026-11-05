@@ -88,10 +88,43 @@ body {
   /* 한글은 단어 중간에서 줄이 바뀌지 않게 */
   word-break: keep-all;
   overflow-wrap: break-word;
-  /* 낮↔밤 전환 때 밝기가 갑자기 바뀌지 않도록 짧게 이어 준다 */
-  transition:
-    background-color 240ms ease,
-    color 240ms ease;
+}
+
+/* 낮↔밤 전환: 토글을 누른 순간에만(.theme-changing) 모든 요소의 색을 함께 0.24초 동안 바꾼다.
+   (예전엔 body만 서서히 바뀌고 칩·입력칸·구분선은 즉시 바뀌어 잠깐 색이 어긋나 보였다)
+   움직임 줄이기를 켠 사람에게는 적용하지 않는다. */
+@media (prefers-reduced-motion: no-preference) {
+  .theme-changing,
+  .theme-changing *,
+  .theme-changing *::before,
+  .theme-changing *::after {
+    transition:
+      background-color 240ms ease,
+      color 240ms ease,
+      border-color 240ms ease,
+      box-shadow 240ms ease,
+      fill 240ms ease,
+      stroke 240ms ease !important;
+  }
+}
+
+/* 확인 창이 툭 튀어나오지 않게: 살짝 커지며 나타나고, 뒤 배경은 서서히 흐려진다 */
+dialog[open] {
+  animation: nook-dialog-in 160ms ease-out;
+}
+dialog[open]::backdrop {
+  animation: nook-fade-in 160ms ease-out;
+}
+@keyframes nook-dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+@keyframes nook-fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 ::selection {
