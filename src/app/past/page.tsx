@@ -46,7 +46,7 @@ async function PastGroups() {
           <p className="text-sm text-text-muted">{dateLabel(group.date)}</p>
           <ul className="mt-1 flex flex-col">
             {group.posts.map((post) => (
-              <PostListItem key={post.id} post={post} />
+              <PostListItem key={post.id} post={post} when="time" />
             ))}
           </ul>
         </section>

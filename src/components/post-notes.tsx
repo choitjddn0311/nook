@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { addNote, deleteNote } from "@/app/posts/[id]/note-actions";
 import type { PostNote } from "@/lib/database.types";
-import { primaryButton, quietButton } from "@/lib/button-styles";
+import { quietButton, secondaryButton } from "@/lib/button-styles";
 import { formatPostDate } from "@/lib/format";
 
 // 글 보기 아래 '덧붙인 생각'. 원래 글은 그대로 두고, 날짜별로 지금의 생각을 차례로 붙인다.
@@ -108,7 +108,7 @@ export function PostNotes({ postId, initialNotes }: { postId: string; initialNot
           <p id="note-error" role="alert" className="text-sm font-medium text-text">
             {error}
           </p>
-          <button type="button" onClick={submit} disabled={pending || !draft.trim()} className={primaryButton}>
+          <button type="button" onClick={submit} disabled={pending || !draft.trim()} className={secondaryButton}>
             {pending ? "덧붙이는 중…" : "덧붙이기"}
           </button>
         </div>

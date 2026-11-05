@@ -42,7 +42,7 @@ async function PostView({ id }: { id: string }) {
 
   return (
     <>
-      <article className="flex-1 pt-4 pb-8">
+      <article className="flex-1 pt-4 pb-12">
         <header className="flex flex-col gap-2">
           <p className="text-sm text-text-muted">
             <time dateTime={post.created_at}>{formatPostDate(post.created_at)}</time>
