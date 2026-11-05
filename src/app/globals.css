@@ -99,10 +99,14 @@ body {
   color: var(--text);
 }
 
-/* 포커스 표시: 키보드로 이동할 때 본문색 테두리 */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+/* 포커스 표시: 키보드로 이동할 때 본문색 테두리.
+   base 레이어에 둬야 컴포넌트의 Tailwind 클래스(focus-visible:outline-none 등)가 이 규칙을 덮어쓸 수 있다.
+   (레이어 밖 규칙은 레이어 안 규칙보다 항상 이겨서, 에디터에 테두리와 막대가 겹쳐 보이던 문제) */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
 }
 
 /* 낮/밤 토글 아이콘: 지금 테마에서 '바꿀 곳'을 보여준다 (낮이면 달, 밤이면 해) */
