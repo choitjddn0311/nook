@@ -65,6 +65,20 @@
    ─────────────────────────────────────────────── */
 html {
   -webkit-text-size-adjust: 100%;
+  /* 폰에서 누를 때 생기는 회색 번쩍임 제거 (대신 각 버튼의 :active 반응을 쓴다) */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 컨트롤은 누르자마자 반응(더블탭 확대 대기 없음), 길게 눌러도 글자가 선택되지 않게.
+   글 본문 같은 내용은 그대로 선택·복사할 수 있다. */
+button,
+a,
+[role="button"],
+label {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 body {
