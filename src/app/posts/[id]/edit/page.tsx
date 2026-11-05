@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { PostEditor } from "@/components/post-editor";
+import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { getPost } from "@/lib/posts";
 import { updatePost } from "../actions";
 
@@ -11,7 +12,7 @@ export default function EditPostPage({ params }: PageProps<"/posts/[id]/edit">) 
   return (
     <div className="flex flex-1 flex-col pt-4">
       <h1 className="sr-only">글 고치기</h1>
-      <Suspense fallback={null}>
+      <Suspense fallback={<EditorSkeleton />}>
         {params.then(({ id }) => (
           <EditForm id={id} />
         ))}
@@ -32,5 +33,17 @@ async function EditForm({ id }: { id: string }) {
       pendingLabel="저장하는 중…"
       cancelHref={`/posts/${post.id}`}
     />
+  );
+}
+
+// 고칠 글을 불러오는 동안: 제목 + 본문 몇 줄 모양
+function EditorSkeleton() {
+  return (
+    <SkeletonGroup label="고칠 글을 불러오는 중" className="flex flex-1 flex-col gap-3 pt-2">
+      <SkeletonBar className="h-8 w-1/2" />
+      <SkeletonBar className="mt-4 h-4 w-full" />
+      <SkeletonBar className="h-4 w-full" />
+      <SkeletonBar className="h-4 w-3/4" />
+    </SkeletonGroup>
   );
 }

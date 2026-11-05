@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { formatPostDate, getPostHeadline } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -86,18 +87,17 @@ export async function PostList({ tag }: { tag: string | null }) {
   );
 }
 
-// 목록을 불러오는 동안 잠깐 보이는 자리 표시. 움직이지 않는 회색 막대만 둔다.
+// 목록을 불러오는 동안 보이는 자리 표시. 막대 위로 옅은 빛이 지나간다.
 export function PostListSkeleton() {
   return (
-    <div aria-hidden="true" className="flex-1 pt-4">
+    <SkeletonGroup label="글 목록을 불러오는 중" className="flex-1 pt-4">
       {[0, 1, 2].map((i) => (
         <div key={i} className="flex flex-col gap-2 border-b border-border py-5 last:border-b-0">
-          <div className="h-3.5 w-24 rounded bg-surface" />
-          <div className="h-5 w-2/3 rounded bg-surface" />
-          <div className="h-4 w-full rounded bg-surface" />
+          <SkeletonBar className="h-3.5 w-24" />
+          <SkeletonBar className="h-5 w-2/3" />
+          <SkeletonBar className="h-4 w-full" />
         </div>
       ))}
-      <span className="sr-only">글 목록을 불러오는 중</span>
-    </div>
+    </SkeletonGroup>
   );
 }
