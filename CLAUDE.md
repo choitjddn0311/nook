@@ -71,7 +71,7 @@
 ### 2차 이후: 핵심 기능 확장
 MVP가 끝난 뒤 아래 순서로 진행한다. 이미 MVP에서 만든 부분은 "(MVP)"로 표시했다.
 
-**11. 자유 기록 강화 (Free Writing)** — 진행 중
+**11. 자유 기록 강화 (Free Writing)** — 완료
 - 제목 없이 본문만 작성 / 제목은 선택 (MVP)
 - 자동 저장, 작성 중 저장 상태 표시 ("저장 중…", "저장됨")
 - 글자 수·단어 수 표시
@@ -108,8 +108,12 @@ MVP가 끝난 뒤 아래 순서로 진행한다. 이미 MVP에서 만든 부분�
 - Next.js (App Router) + TypeScript
 - Tailwind CSS (색상은 위 토큰과 연결)
 - shadcn/ui: 필요한 컴포넌트만 가져와서 Nook 스타일로 수정한다
-- Supabase: DB, 로그인
-- PWA: 오프라인 작성 지원
+- Supabase: DB, 로그인 (지역: eu-west-1 아일랜드)
+- PWA: 홈 화면 설치 + 작성 중 오프라인 보관(자동 저장)
+- 배포: Vercel (Hobby) — https://nook-three-opal.vercel.app
+  - `main`에 병합하면 자동 배포, PR마다 미리보기 주소가 생긴다
+  - 서버 실행 지역은 Supabase와 같은 곳(`vercel.json`의 `regions: ["dub1"]`). Supabase 지역을 옮기면 여기도 같이 바꾼다
+  - 환경 변수는 Vercel 대시보드에 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 두 개만 (비밀 키 없음)
 
 ## 데이터와 보안 (중요)
 - 모든 테이블은 **RLS(Row Level Security)를 켠다.** 본인만 읽고 쓸 수 있는 정책을 둔다.
