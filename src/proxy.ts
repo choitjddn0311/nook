@@ -7,7 +7,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // 정적 파일(_next/static, 이미지, 폰트, 아이콘 등)은 로그인 확인 없이 통과시킨다.
-  // 확장자가 있는 경로를 모두 제외해서 CSS·JS·폰트가 /login 으로 튕기는 일이 없게 한다.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.[a-zA-Z0-9]+$).*)"],
+  // 정적 파일(_next/static, 이미지, 폰트 등)은 로그인 확인 없이 통과시킨다.
+  // 확장자가 있는 경로(manifest.webmanifest 포함)와 앱 아이콘(/icon/..., /apple-icon)도 제외한다.
+  // → 홈 화면에 설치할 때 브라우저가 로그인 없이 아이콘·매니페스트를 받아 갈 수 있어야 한다.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|.*\\.[a-zA-Z0-9]+$).*)"],
 };

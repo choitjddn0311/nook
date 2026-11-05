@@ -12,6 +12,9 @@ export const THEME_BG: Record<Theme, string> = {
   dark: "#141414",
 };
 
+// 앱 아이콘 색 (아이콘 이미지는 CSS 변수를 쓸 수 없다). --text(낮) 바탕에 --bg(낮) 무늬.
+export const ICON_COLORS = { background: "#171717", mark: "#FAFAFA" } as const;
+
 // 첫 화면이 그려지기 전에 실행되는 스크립트.
 // 사용자가 직접 고른 테마가 있으면 <html data-theme="..."> 로 적용하고,
 // 없으면 아무것도 하지 않아 CSS의 prefers-color-scheme(시스템 설정)을 따른다.
