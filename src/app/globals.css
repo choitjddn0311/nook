@@ -1,64 +1,51 @@
 @import "tailwindcss";
 
 /* ───────────────────────────────────────────────
-   색상 토큰 (CLAUDE.md 표와 같은 값)
-   - 기본은 낮 테마.
-   - 사용자가 고른 값이 없으면 시스템 설정(prefers-color-scheme)을 따른다.
-   - 사용자가 고르면 <html data-theme="light|dark"> 가 우선한다.
+   색상 토큰 — 모노크롬 (CLAUDE.md 표와 같은 값)
+   - 흑·백·순수 중립 회색만. 포인트 색 없음.
+     강조는 색이 아니라 진하기·굵기·밑줄로 한다.
+   - 기본은 낮 테마. 사용자가 고른 값이 없으면 시스템 설정을 따르고,
+     고르면 <html data-theme="light|dark"> 가 우선한다.
    ─────────────────────────────────────────────── */
 :root {
   color-scheme: light;
-  --bg: #f5eee3;
-  --surface: #fbf7f0;
-  --text: #3b2f26;
-  --text-muted: #6f6052;
-  --accent: #a3561f;
-  --accent-contrast: #fbf7f0;
-  --border: #e3d7c6;
-
-  /* 스탠드 불빛 색.
-     낮: 배경보다 밝은 surface 색으로 '종이가 밝아지는' 빛 → 모든 글자 대비가 오히려 올라간다.
-     밤: accent를 옅게 섞은 호박색 빛 (최대 지점에서도 본문 11.3 / 보조 5.7 / 포인트 6.9) */
-  --lamp: var(--surface);
-  /* 종이 결: 낮에는 살짝 어둡게 눌러 준다 */
-  --grain-opacity: 0.05;
-  --grain-blend: multiply;
+  --bg: #fafafa;
+  --surface: #f0f0f0;
+  --text: #171717;
+  --text-muted: #666666;
+  --accent: #171717;
+  --accent-contrast: #fafafa;
+  --border: #e5e5e5;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #1e1914;
-    --surface: #28211b;
-    --text: #ede4d6;
-    --text-muted: #b0a291;
-    --accent: #e3a95f;
-    --accent-contrast: #1e1914;
-    --border: #3d332b;
-    --lamp: color-mix(in oklab, var(--accent) 11%, var(--bg));
-    --grain-opacity: 0.04;
-    --grain-blend: screen;
+    --bg: #141414;
+    --surface: #1f1f1f;
+    --text: #ededed;
+    --text-muted: #a1a1a1;
+    --accent: #ededed;
+    --accent-contrast: #141414;
+    --border: #2e2e2e;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #1e1914;
-  --surface: #28211b;
-  --text: #ede4d6;
-  --text-muted: #b0a291;
-  --accent: #e3a95f;
-  --accent-contrast: #1e1914;
-  --border: #3d332b;
-  --lamp: color-mix(in oklab, var(--accent) 11%, var(--bg));
-  --grain-opacity: 0.04;
-  --grain-blend: screen;
+  --bg: #141414;
+  --surface: #1f1f1f;
+  --text: #ededed;
+  --text-muted: #a1a1a1;
+  --accent: #ededed;
+  --accent-contrast: #141414;
+  --border: #2e2e2e;
 }
 
 /* ───────────────────────────────────────────────
    Tailwind 연결
    기본 색상 팔레트(gray, blue...)를 모두 지워서
-   토큰이 아닌 색은 클래스로 쓸 수 없게 한다. (bg-bg, text-text-muted, text-accent ...)
+   토큰이 아닌 색은 클래스로 쓸 수 없게 한다. (bg-bg, text-text-muted ...)
    ─────────────────────────────────────────────── */
 @theme inline {
   --color-*: initial;
@@ -71,7 +58,6 @@
   --color-border: var(--border);
 
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-serif: var(--font-noto-serif-kr), "RIDIBatang", "Nanum Myeongjo", serif;
 }
 
 /* ───────────────────────────────────────────────
@@ -82,53 +68,24 @@ html {
 }
 
 body {
-  position: relative;
-  isolation: isolate;
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
   /* 한글은 단어 중간에서 줄이 바뀌지 않게 */
   word-break: keep-all;
   overflow-wrap: break-word;
+  /* 낮↔밤 전환 때 밝기가 갑자기 바뀌지 않도록 짧게 이어 준다 */
   transition:
     background-color 240ms ease,
     color 240ms ease;
 }
 
-/* 스탠드 불빛: 화면 위쪽 왼편에 따뜻한 빛이 고인다. 글자 뒤에 깔리므로 클릭을 막지 않는다. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 110% 75% at 30% -15%,
-    var(--lamp) 0%,
-    color-mix(in oklab, var(--lamp) 60%, transparent) 30%,
-    color-mix(in oklab, var(--lamp) 25%, transparent) 55%,
-    transparent 85%
-  );
-}
-
-/* 종이 결: 아주 미세한 노이즈. 글 가독성을 해치면 --grain-opacity를 0으로. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: var(--grain-opacity);
-  mix-blend-mode: var(--grain-blend);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.3 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
 ::selection {
-  background-color: color-mix(in oklab, var(--accent) 28%, transparent);
+  background-color: color-mix(in oklab, var(--text) 15%, transparent);
   color: var(--text);
 }
 
-/* 포커스 표시: 키보드로 이동할 때 불빛 색 테두리 */
+/* 포커스 표시: 키보드로 이동할 때 본문색 테두리 */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;

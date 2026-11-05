@@ -8,8 +8,8 @@ export type Theme = "light" | "dark";
 export const THEME_STORAGE_KEY = "nook-theme";
 
 export const THEME_BG: Record<Theme, string> = {
-  light: "#F5EEE3",
-  dark: "#1E1914",
+  light: "#FAFAFA",
+  dark: "#141414",
 };
 
 // 첫 화면이 그려지기 전에 실행되는 스크립트.

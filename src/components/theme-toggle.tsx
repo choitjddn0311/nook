@@ -47,10 +47,11 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      onClick={() => applyTheme(next)}
+      // 렌더 시점 값이 아니라 누르는 순간 화면에 실제로 적용된 테마를 기준으로 뒤집는다
+      onClick={() => applyTheme(getTheme() === "dark" ? "light" : "dark")}
       aria-label={label}
       title={label}
-      className="grid size-11 place-items-center rounded-full text-text-muted transition-colors hover:text-accent"
+      className="grid size-11 place-items-center rounded-full text-text-muted transition-[color,transform] duration-100 ease-out hover:text-text active:scale-95"
     >
       {/* 아이콘은 CSS로 고른다(globals.css의 .icon-day / .icon-night). 서버/브라우저 화면이 항상 같아서 깜빡임이 없다. */}
       <svg className="icon-night size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
