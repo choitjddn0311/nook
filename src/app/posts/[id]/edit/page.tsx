@@ -27,7 +27,7 @@ async function EditForm({ id }: { id: string }) {
   return (
     <PostEditor
       action={updatePost.bind(null, post.id)}
-      initial={{ title: post.title ?? "", content: post.content }}
+      initial={{ title: post.title ?? "", content: post.content, tags: post.tags }}
       submitLabel="저장"
       pendingLabel="저장하는 중…"
       cancelHref={`/posts/${post.id}`}
