@@ -1,3 +1,4 @@
+import { primaryButton } from "@/lib/button-styles";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -83,7 +84,7 @@ async function PostView({ id }: { id: string }) {
         <DeletePostButton postId={post.id} />
         <Link
           href={`/posts/${post.id}/edit`}
-          className="inline-flex h-12 min-w-28 items-center justify-center rounded-lg bg-accent px-6 text-base font-semibold text-accent-contrast transition-transform duration-100 ease-out active:scale-[0.98]"
+          className={primaryButton}
         >
           고치기
         </Link>

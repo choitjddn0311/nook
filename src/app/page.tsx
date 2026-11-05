@@ -1,3 +1,4 @@
+import { primaryButton } from "@/lib/button-styles";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BottomBar } from "@/components/bottom-bar";
@@ -28,7 +29,7 @@ export default function Home({ searchParams }: PageProps<"/">) {
       <BottomBar className="flex justify-end">
         <Link
           href="/write"
-          className="inline-flex h-12 items-center rounded-lg bg-accent px-6 text-base font-semibold text-accent-contrast transition-transform duration-100 ease-out active:scale-[0.98]"
+          className={primaryButton}
         >
           새 글 쓰기
         </Link>

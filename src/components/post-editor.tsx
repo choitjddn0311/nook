@@ -1,5 +1,6 @@
 "use client";
 
+import { primaryButton } from "@/lib/button-styles";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BottomBar } from "@/components/bottom-bar";
@@ -186,7 +187,7 @@ export function PostEditor({ initial }: Props) {
           type="button"
           onClick={() => void finish()}
           disabled={finishing}
-          className="h-12 min-w-24 shrink-0 rounded-lg bg-accent px-6 text-base font-semibold text-accent-contrast transition-[transform,opacity] duration-100 ease-out active:scale-[0.98] disabled:opacity-60"
+          className={primaryButton}
         >
           {finishing ? "저장 중…" : "완료"}
         </button>

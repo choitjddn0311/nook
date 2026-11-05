@@ -3,7 +3,7 @@
 export function BottomBar({ className = "", children }: { className?: string; children: React.ReactNode }) {
   return (
     <div
-      className={`sticky bottom-0 -mx-4 bg-bg px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] before:pointer-events-none before:absolute before:inset-x-0 before:-top-6 before:h-6 before:bg-linear-to-t before:from-bg before:to-transparent sm:-mx-6 sm:px-6 ${className}`}
+      className={`sticky bottom-0 -mx-4 bg-bg px-4 pt-2.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] before:pointer-events-none before:absolute before:inset-x-0 before:-top-6 before:h-6 before:bg-linear-to-t before:from-bg before:to-transparent sm:-mx-6 sm:px-6 ${className}`}
     >
       {children}
     </div>

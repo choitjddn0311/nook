@@ -1,5 +1,6 @@
 "use client";
 
+import { primaryButton, quietButton } from "@/lib/button-styles";
 import Link from "next/link";
 
 // 화면을 그리다 오류가 났을 때 (Next 기본 영어 오류 화면 대신)
@@ -14,13 +15,13 @@ export default function ErrorPage({ reset }: { error: Error & { digest?: string 
         <button
           type="button"
           onClick={() => reset()}
-          className="h-12 rounded-lg bg-accent px-6 text-base font-semibold text-accent-contrast transition-transform duration-100 ease-out active:scale-[0.98]"
+          className={primaryButton}
         >
           다시 시도
         </button>
         <Link
           href="/"
-          className="inline-flex h-12 items-center rounded-lg px-4 text-base text-text-muted transition-colors hover:text-text"
+          className={quietButton}
         >
           목록으로
         </Link>
