@@ -60,9 +60,17 @@ async function PostView({ id }: { id: string }) {
         <div className="mt-6 text-[17px] leading-[1.8] whitespace-pre-wrap text-text">{post.content}</div>
 
         {post.tags.length > 0 && (
-          <ul className="mt-8 flex flex-wrap gap-x-3 gap-y-1 text-sm text-text-muted" aria-label="태그">
+          <ul className="mt-8 flex flex-wrap gap-2" aria-label="태그">
             {post.tags.map((tag) => (
-              <li key={tag}>#{tag}</li>
+              <li key={tag}>
+                {/* 누르면 이 태그가 붙은 글 목록으로 */}
+                <Link
+                  href={`/?tag=${encodeURIComponent(tag)}`}
+                  className="inline-flex h-11 items-center rounded-full bg-surface px-4 text-sm text-text-muted transition-[color,transform] duration-100 ease-out hover:text-text active:scale-[0.97]"
+                >
+                  #{tag}
+                </Link>
+              </li>
             ))}
           </ul>
         )}

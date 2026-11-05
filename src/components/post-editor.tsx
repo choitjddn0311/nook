@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useActionState, useRef } from "react";
+import { TagInput } from "@/components/tag-input";
 import type { EditorState } from "@/lib/post-form";
 
 type Props = {
   action: (prev: EditorState, formData: FormData) => Promise<EditorState>;
-  initial?: { title: string; content: string };
+  initial?: { title: string; content: string; tags: string[] };
   submitLabel: string;
   pendingLabel: string;
   cancelHref: string;
@@ -19,6 +20,7 @@ export function PostEditor({ action, initial, submitLabel, pendingLabel, cancelH
     error: null,
     title: initial?.title ?? "",
     content: initial?.content ?? "",
+    tags: initial?.tags ?? [],
   });
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -47,6 +49,14 @@ export function PostEditor({ action, initial, submitLabel, pendingLabel, cancelH
         defaultValue={state.title}
         placeholder="제목 (선택)"
         autoComplete="off"
+        enterKeyHint="next"
+        // 제목에서 엔터를 치면 저장되지 않고 본문으로 넘어간다 (한글 조합 중 엔터는 무시)
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.nativeEvent.isComposing && !(e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            document.getElementById("content")?.focus();
+          }
+        }}
         className="-mx-3 rounded-lg bg-transparent px-3 py-2 text-2xl leading-tight font-semibold tracking-[-0.02em] text-text transition-colors placeholder:text-text-muted focus:bg-surface focus-visible:outline-none"
       />
 
@@ -64,6 +74,8 @@ export function PostEditor({ action, initial, submitLabel, pendingLabel, cancelH
         aria-describedby={state.error ? "editor-error" : undefined}
         className="-mx-3 mt-2 min-h-[50vh] flex-1 resize-none rounded-lg bg-transparent px-3 py-2 text-[17px] leading-[1.8] text-text transition-colors field-sizing-content placeholder:text-text-muted focus:bg-surface focus-visible:outline-none"
       />
+
+      <TagInput defaultTags={state.tags} />
 
       {/* 하단 고정 바: 폰에서 엄지가 닿는 곳에 저장 버튼 */}
       <div className="sticky bottom-0 -mx-4 mt-4 bg-bg px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:-mx-6 sm:px-6">
