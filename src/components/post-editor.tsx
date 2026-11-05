@@ -43,6 +43,7 @@ export function PostEditor({ initial }: Props) {
       onCreated: (id) => {
         // 새 글이 생기면 주소를 고치기 주소로 조용히 바꾼다 (새로고침해도 같은 글을 이어서 쓰도록)
         window.history.replaceState(null, "", `/posts/${id}/edit`);
+        document.title = "글 고치기 · Nook";
       },
     }),
   );
@@ -56,6 +57,9 @@ export function PostEditor({ initial }: Props) {
 
   // 이 기기에 DB보다 새 임시본이 있으면 이어서 불러온다 (인터넷이 끊겼을 때 쓴 내용 등)
   useEffect(() => {
+    // 이 글이 '새 글' 화면에서 만들어졌는데 그때의 임시본이 남아 있다면 정리 (이미 이 글로 저장됨)
+    if (initial.id && readDraft(null)?.newId === initial.id) clearDraft(null);
+
     const draft = readDraft(initial.id);
     if (!draft) return;
     const serverTime = initial.updatedAt ? Date.parse(initial.updatedAt) : 0;
@@ -69,6 +73,7 @@ export function PostEditor({ initial }: Props) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setValue(restored);
     setNotice("이 기기에 저장 안 된 내용이 있어 이어서 불러왔어요.");
+    saver.adoptNewId(draft.newId);
     saver.update(restored);
     void saver.flush();
   }, [initial, saver]);
@@ -104,7 +109,7 @@ export function PostEditor({ initial }: Props) {
       setFinishing(false);
       return;
     }
-    if (!saver.id) clearDraft(null); // 아무것도 안 쓴 새 글
+    if (!saver.id) saver.discard(); // 본문 없이 끝낸 새 글: 기기 임시본도 남기지 않는다
     router.push(saver.id ? `/posts/${saver.id}` : "/");
   }
 

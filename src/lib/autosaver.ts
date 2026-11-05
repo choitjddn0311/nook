@@ -5,12 +5,13 @@
 //    - 0.3초 묶어서 이 기기(localStorage)에 임시 보관
 //    - 입력이 1.5초 멈추면 DB 저장(save)
 // 2) save(): 동시에 두 번 보내지 않는다. 저장 중에 또 바뀌면 끝난 뒤 한 번 더 저장
-//    - 새 글(id 없음)은 첫 저장 때 글이 만들어지고 id를 받는다
+//    - 새 글은 이 기기에서 id를 미리 정해 두고(newId) 첫 저장 때 그 id로 만든다.
+//      창이 첫 저장 도중 닫혀 같은 임시본이 다시 저장돼도, 서버는 같은 id라 글을 하나만 둔다(중복 방지).
 //    - 본문이 비면 저장하지 않는다 (빈 글로 덮어쓰지 않음)
 //    - 인터넷이 없으면 기기에만 두고 offline 상태로
 // 3) flush(): 기다리지 말고 지금 저장하고, 끝날 때까지 기다린다 (완료 버튼, 앱 전환 시)
 import { savePost } from "@/app/posts/actions";
-import { clearDraft, sameValue, writeDraft } from "@/lib/drafts";
+import { clearDraft, newPostId, sameValue, writeDraft } from "@/lib/drafts";
 import type { PostValue } from "@/lib/post-form";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "offline" | "error" | "empty";
@@ -27,6 +28,9 @@ type Options = {
 
 export function createAutosaver({ id: initialId, saved: initialSaved, onStatus, onCreated }: Options) {
   let id = initialId;
+  // 새 글 id는 처음 필요할 때(첫 임시 보관·첫 저장) 브라우저에서 만든다 (서버에서 화면을 미리 만들 때 무작위 값 금지)
+  let newId: string | null = null;
+  const ensureNewId = () => (id ? null : (newId ??= newPostId()));
   let saved = initialSaved;
   let latest = initialSaved;
   let status: SaveStatus = "idle";
@@ -44,7 +48,7 @@ export function createAutosaver({ id: initialId, saved: initialSaved, onStatus, 
 
   function writeDraftNow() {
     clearTimeout(draftTimer);
-    if (isDirty()) writeDraft(id, latest);
+    if (isDirty()) writeDraft(id, latest, ensureNewId());
   }
 
   async function runSave() {
@@ -67,7 +71,7 @@ export function createAutosaver({ id: initialId, saved: initialSaved, onStatus, 
     const sending = latest;
     setStatus("saving");
     try {
-      const res = await savePost({ id, ...sending });
+      const res = await savePost({ id: id ?? ensureNewId()!, isNew: !id, ...sending });
       if (!res.ok) {
         writeDraftNow();
         setStatus("error", res.error);
@@ -76,6 +80,7 @@ export function createAutosaver({ id: initialId, saved: initialSaved, onStatus, 
       if (!id) {
         clearDraft(null); // '새 글' 임시본은 이제 이 글 id의 임시본으로 옮겨 간다
         id = res.id;
+        newId = null;
         onCreated(res.id);
       }
       saved = sending;
@@ -108,6 +113,10 @@ export function createAutosaver({ id: initialId, saved: initialSaved, onStatus, 
   }
 
   return {
+    // 이어 쓰기: 새 글 임시본에 담겨 있던 id를 그대로 이어받는다 (같은 글로 저장되게)
+    adoptNewId(draftNewId: string | undefined) {
+      if (!id && draftNewId) newId = draftNewId;
+    },
     update(value: PostValue) {
       latest = value;
       clearTimeout(draftTimer);
@@ -121,6 +130,13 @@ export function createAutosaver({ id: initialId, saved: initialSaved, onStatus, 
       await save();
       while (inFlight) await inFlight;
       return status;
+    },
+    // 저장할 것 없이 끝낼 때(본문 없이 끝낸 새 글): 대기 중인 저장·임시본을 모두 버린다
+    discard() {
+      clearTimeout(saveTimer);
+      clearTimeout(draftTimer);
+      latest = saved;
+      clearDraft(id);
     },
     // 화면을 떠날 때: 타이머를 멈추고, 저장 안 된 내용은 기기에 남긴 뒤 저장을 한 번 시도
     dispose() {
