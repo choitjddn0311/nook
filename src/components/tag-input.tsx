@@ -6,9 +6,10 @@ import { TAG_MAX_COUNT, TAG_SEPARATOR, normalizeTag, parseTags } from "@/lib/tag
 // 태그 입력칸.
 // - 엔터·쉼표·공백으로 태그 확정, 칩의 ×로 지우기, 빈칸에서 Backspace로 마지막 태그 지우기
 // - 한글 조합 중(isComposing)에는 엔터/공백으로 끊지 않는다 ("일ㄱ"에서 잘리는 문제 방지)
-// - 확정된 태그는 hidden input(name="tags")으로, 쓰다 만 글자는 tagDraft로 함께 전송된다
-export function TagInput({ defaultTags }: { defaultTags: string[] }) {
-  const [tags, setTags] = useState<string[]>(defaultTags);
+// - 태그 목록은 부모(에디터)가 갖고 있고, 바뀔 때마다 onChange로 알려 준다 → 자동 저장
+// - 쓰다 만 글자는 칸을 벗어날 때(blur) 태그로 확정된다
+export function TagInput({ tags, onChange }: { tags: string[]; onChange: (tags: string[]) => void }) {
+  const setTags = onChange;
   const [draft, setDraft] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const hintId = useId();
@@ -29,7 +30,6 @@ export function TagInput({ defaultTags }: { defaultTags: string[] }) {
     <div className="-mx-3 mt-2 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 transition-colors focus-within:bg-surface focus-within:shadow-[inset_3px_0_0_var(--accent)]">
       {tags.map((tag) => (
         <span key={tag} className="inline-flex items-center rounded-full bg-surface text-sm text-text">
-          <input type="hidden" name="tags" value={tag} />
           <span className="pl-3">#{tag}</span>
           <button
             type="button"
@@ -51,7 +51,6 @@ export function TagInput({ defaultTags }: { defaultTags: string[] }) {
       <input
         ref={inputRef}
         id="tag-input"
-        name="tagDraft"
         type="text"
         value={draft}
         disabled={full}

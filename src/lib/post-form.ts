@@ -1,20 +1,19 @@
-// 글쓰기·수정 폼에서 받은 값을 정리하고 검사한다.
+// 글 내용 검사. 서버(savePost)가 저장 직전에 쓰고, 화면도 같은 규칙으로 미리 판단한다.
 // (서버 액션 파일에 두면 외부에서 호출 가능한 액션으로 노출되므로 일반 모듈로 분리)
 import { parseTags, validateTags } from "@/lib/tags";
 
-export type EditorState = { error: string | null; title: string; content: string; tags: string[] };
+export type PostValue = { title: string; content: string; tags: string[] };
 
-const TITLE_MAX = 200;
-const CONTENT_MAX = 100_000;
+export const TITLE_MAX = 200;
+export const CONTENT_MAX = 100_000;
 
-export function readPostForm(formData: FormData) {
-  const title = String(formData.get("title") ?? "").trim();
-  const content = String(formData.get("content") ?? "").replace(/\s+$/, "");
-  // 확정된 태그(tags 여러 개) + 입력칸에 쓰다 만 글자(tagDraft)도 태그로 받는다
-  const tags = parseTags([
-    ...formData.getAll("tags").map(String),
-    String(formData.get("tagDraft") ?? ""),
-  ]);
+// 화면에서 온 값은 믿지 않는다: 타입부터 확인하고, 다듬은 뒤 규칙을 검사한다.
+export function validatePost(input: unknown): PostValue & { error: string | null } {
+  const raw = (input ?? {}) as Record<string, unknown>;
+  const title = typeof raw.title === "string" ? raw.title.trim() : "";
+  const content = typeof raw.content === "string" ? raw.content.replace(/\s+$/, "") : "";
+  const tagList = Array.isArray(raw.tags) ? raw.tags.filter((t): t is string => typeof t === "string") : [];
+  const tags = parseTags(tagList);
 
   let error: string | null = null;
   if (!content.trim()) error = "본문을 한 글자 이상 적어 주세요.";

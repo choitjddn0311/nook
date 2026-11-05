@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import { PostEditor } from "@/components/post-editor";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { getPost } from "@/lib/posts";
-import { updatePost } from "../actions";
 
 export const metadata: Metadata = { title: "글 고치기 · Nook" };
 
@@ -27,11 +26,7 @@ async function EditForm({ id }: { id: string }) {
 
   return (
     <PostEditor
-      action={updatePost.bind(null, post.id)}
-      initial={{ title: post.title ?? "", content: post.content, tags: post.tags }}
-      submitLabel="저장"
-      pendingLabel="저장하는 중…"
-      cancelHref={`/posts/${post.id}`}
+      initial={{ id: post.id, title: post.title ?? "", content: post.content, tags: post.tags, updatedAt: post.updated_at }}
     />
   );
 }
