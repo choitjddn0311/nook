@@ -27,7 +27,8 @@ export function DeletePostButton({ postId }: { postId: string }) {
         onClick={(e) => {
           if (e.target === e.currentTarget && !pending) e.currentTarget.close();
         }}
-        className="m-auto w-[min(100%-2rem,24rem)] rounded-xl bg-bg p-6 text-text backdrop:bg-bg/70 backdrop:backdrop-blur-sm"
+        // 창은 surface 면 + 옅은 테두리로 흐려진 배경과 구분 (bg와 같은 색이면 밤 테마에서 경계가 사라짐)
+        className="m-auto w-[min(100%-2rem,24rem)] rounded-xl bg-surface p-6 text-text ring-1 ring-border backdrop:bg-bg/70 backdrop:backdrop-blur-sm"
       >
         <h2 id="delete-title" className="text-lg font-semibold tracking-[-0.01em]">
           이 글을 지울까요?

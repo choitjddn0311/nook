@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DeletePostButton } from "@/components/delete-post-button";
+import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { formatPostDate } from "@/lib/format";
 import { getPost } from "@/lib/posts";
 
@@ -92,12 +93,12 @@ async function PostView({ id }: { id: string }) {
 
 function PostSkeleton() {
   return (
-    <div aria-hidden="true" className="flex flex-1 flex-col gap-3 pt-4">
-      <div className="h-3.5 w-24 rounded bg-surface" />
-      <div className="h-7 w-2/3 rounded bg-surface" />
-      <div className="mt-4 h-4 w-full rounded bg-surface" />
-      <div className="h-4 w-full rounded bg-surface" />
-      <div className="h-4 w-1/2 rounded bg-surface" />
-    </div>
+    <SkeletonGroup label="글을 불러오는 중" className="flex flex-1 flex-col gap-3 pt-4">
+      <SkeletonBar className="h-3.5 w-24" />
+      <SkeletonBar className="h-7 w-2/3" />
+      <SkeletonBar className="mt-4 h-4 w-full" />
+      <SkeletonBar className="h-4 w-full" />
+      <SkeletonBar className="h-4 w-1/2" />
+    </SkeletonGroup>
   );
 }
