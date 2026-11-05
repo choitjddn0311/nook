@@ -16,8 +16,12 @@ export async function TagFilter({ active }: { active: string | null }) {
   if (tags.length === 0) return null;
 
   return (
-    <nav aria-label="태그로 거르기" className="-mx-4 overflow-x-auto px-4 pt-2 sm:-mx-6 sm:px-6">
-      <ul className="flex w-max gap-2 pb-2">
+    // 오른쪽 끝을 서서히 흐리게 해서 칩이 뚝 잘리지 않고 '옆으로 더 있다'는 걸 보여 준다
+    <nav
+      aria-label="태그로 거르기"
+      className="-mx-4 overflow-x-auto [mask-image:linear-gradient(to_right,black_calc(100%-2.5rem),transparent)] px-4 pt-2 [scrollbar-width:none] sm:-mx-6 sm:px-6"
+    >
+      <ul className="flex w-max gap-2 pr-8 pb-2">
         <li>
           <Chip href="/" current={!active}>
             전체

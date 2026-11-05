@@ -27,7 +27,7 @@ export function TagInput({ tags, onChange }: { tags: string[]; onChange: (tags: 
   }
 
   return (
-    <div className="-mx-3 mt-2 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 transition-colors focus-within:bg-surface focus-within:shadow-[inset_3px_0_0_var(--accent)]">
+    <div className="-mx-3 mt-2 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 transition-shadow focus-within:shadow-[inset_3px_0_0_var(--accent)]">
       {tags.map((tag) => (
         <span key={tag} className="inline-flex items-center rounded-full bg-surface text-sm text-text">
           <span className="pl-3">#{tag}</span>

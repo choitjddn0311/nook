@@ -6,7 +6,7 @@ import { login, type LoginState } from "./actions";
 const initialState: LoginState = { error: null, email: "" };
 
 const fieldClass =
-  "h-12 w-full rounded-lg bg-surface px-4 text-base text-text placeholder:text-text-muted outline-offset-2 transition-colors";
+  "h-12 w-full rounded-lg bg-surface px-4 text-base text-text placeholder:text-text-muted transition-shadow focus-visible:outline-none focus:shadow-[inset_0_0_0_2px_var(--accent)]";
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(login, initialState);

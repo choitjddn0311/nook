@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { BottomBar } from "@/components/bottom-bar";
 import { PostList, PostListSkeleton } from "@/components/post-list";
 import { TagFilter } from "@/components/tag-filter";
 import { normalizeTag } from "@/lib/tags";
@@ -24,14 +25,14 @@ export default function Home({ searchParams }: PageProps<"/">) {
       </Suspense>
 
       {/* 하단 고정: 폰에서 엄지가 닿는 곳 */}
-      <div className="sticky bottom-0 -mx-4 flex justify-end bg-bg px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:-mx-6 sm:px-6">
+      <BottomBar className="flex justify-end">
         <Link
           href="/write"
           className="inline-flex h-12 items-center rounded-lg bg-accent px-6 text-base font-semibold text-accent-contrast transition-transform duration-100 ease-out active:scale-[0.98]"
         >
           새 글 쓰기
         </Link>
-      </div>
+      </BottomBar>
     </>
   );
 }

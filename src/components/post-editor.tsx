@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BottomBar } from "@/components/bottom-bar";
 import { TagInput } from "@/components/tag-input";
 import { createAutosaver, type SaveStatus } from "@/lib/autosaver";
 import { clearDraft, readDraft, sameValue } from "@/lib/drafts";
@@ -22,7 +23,8 @@ const STATUS_TEXT: Record<SaveStatus, string> = {
 };
 
 // 글쓰기·고치기 화면이 함께 쓰는 에디터. 자동 저장된다(저장 버튼 없음).
-// 칸 테두리 없이 종이처럼 두고, 포커스가 가면 surface 배경 + 왼쪽 본문색 막대(3px)로 지금 쓰는 칸을 보여 준다.
+// 칸 테두리 없이 종이처럼 두고, 포커스가 가면 왼쪽 본문색 막대(3px, 대비 15:1 이상)로 지금 쓰는 칸을 보여 준다.
+// (예전엔 회색 배경도 깔았는데, 본문 칸이 화면 절반 높이라 회색 덩어리처럼 무거워 보여서 막대만 남김)
 export function PostEditor({ initial }: Props) {
   const router = useRouter();
   const [value, setValue] = useState<PostValue>({ title: initial.title, content: initial.content, tags: initial.tags });
@@ -151,7 +153,7 @@ export function PostEditor({ initial }: Props) {
             document.getElementById("content")?.focus();
           }
         }}
-        className="-mx-3 rounded-lg bg-transparent px-3 py-2 text-2xl leading-tight font-semibold tracking-[-0.02em] text-text transition-colors placeholder:text-text-muted focus:bg-surface focus:shadow-[inset_3px_0_0_var(--accent)] focus-visible:outline-none"
+        className="-mx-3 rounded-lg bg-transparent px-3 py-2 text-2xl leading-tight font-semibold tracking-[-0.02em] text-text transition-shadow placeholder:text-text-muted focus:shadow-[inset_3px_0_0_var(--accent)] focus-visible:outline-none"
       />
 
       <label htmlFor="content" className="sr-only">
@@ -164,13 +166,13 @@ export function PostEditor({ initial }: Props) {
         placeholder="떠오르는 대로 적어 보세요."
         autoFocus
         aria-describedby="editor-stats"
-        className="-mx-3 mt-2 min-h-[50vh] flex-1 resize-none rounded-lg bg-transparent px-3 py-2 text-[17px] leading-[1.8] text-text transition-colors field-sizing-content placeholder:text-text-muted focus:bg-surface focus:shadow-[inset_3px_0_0_var(--accent)] focus-visible:outline-none"
+        className="-mx-3 mt-2 min-h-[50vh] flex-1 resize-none rounded-lg bg-transparent px-3 py-2 text-[17px] leading-[1.8] text-text transition-shadow field-sizing-content placeholder:text-text-muted focus:shadow-[inset_3px_0_0_var(--accent)] focus-visible:outline-none"
       />
 
       <TagInput tags={value.tags} onChange={(tags) => change({ tags })} />
 
       {/* 하단 고정 바: 왼쪽 저장 상태·글자 수, 오른쪽 완료 (폰 엄지 영역) */}
-      <div className="sticky bottom-0 -mx-4 mt-4 flex items-center justify-between gap-3 bg-bg px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:-mx-6 sm:px-6">
+      <BottomBar className="mt-4 flex items-center justify-between gap-3">
         <div className="min-w-0 text-sm leading-snug">
           {/* 상태가 바뀔 때만 화면 낭독기가 읽는다 */}
           <p role="status" className="truncate text-text">
@@ -188,7 +190,7 @@ export function PostEditor({ initial }: Props) {
         >
           {finishing ? "저장 중…" : "완료"}
         </button>
-      </div>
+      </BottomBar>
     </div>
   );
 }

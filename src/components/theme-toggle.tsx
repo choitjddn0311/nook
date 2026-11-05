@@ -24,8 +24,15 @@ function subscribe(onChange: () => void) {
   };
 }
 
+let themeChangeTimer: ReturnType<typeof setTimeout> | undefined;
+
 function applyTheme(theme: Theme) {
-  document.documentElement.dataset.theme = theme;
+  // 바뀌는 동안만 모든 요소에 색 전환을 켠다 (globals.css의 .theme-changing)
+  const root = document.documentElement;
+  root.classList.add("theme-changing");
+  clearTimeout(themeChangeTimer);
+  themeChangeTimer = setTimeout(() => root.classList.remove("theme-changing"), 300);
+  root.dataset.theme = theme;
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch {

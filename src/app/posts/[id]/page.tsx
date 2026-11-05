@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { BottomBar } from "@/components/bottom-bar";
 import { DeletePostButton } from "@/components/delete-post-button";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { formatPostDate } from "@/lib/format";
@@ -78,7 +79,7 @@ async function PostView({ id }: { id: string }) {
       </article>
 
       {/* 하단 고정: 지우기 / 고치기 */}
-      <div className="sticky bottom-0 -mx-4 flex items-center justify-between bg-bg px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:-mx-6 sm:px-6">
+      <BottomBar className="flex items-center justify-between">
         <DeletePostButton postId={post.id} />
         <Link
           href={`/posts/${post.id}/edit`}
@@ -86,7 +87,7 @@ async function PostView({ id }: { id: string }) {
         >
           고치기
         </Link>
-      </div>
+      </BottomBar>
     </>
   );
 }
