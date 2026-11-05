@@ -26,7 +26,7 @@ export function TagInput({ defaultTags }: { defaultTags: string[] }) {
   }
 
   return (
-    <div className="-mx-3 mt-2 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 transition-colors focus-within:bg-surface">
+    <div className="-mx-3 mt-2 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 transition-colors focus-within:bg-surface focus-within:shadow-[inset_3px_0_0_var(--accent)]">
       {tags.map((tag) => (
         <span key={tag} className="inline-flex items-center rounded-full bg-surface text-sm text-text">
           <input type="hidden" name="tags" value={tag} />

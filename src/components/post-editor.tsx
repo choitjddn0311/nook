@@ -14,7 +14,8 @@ type Props = {
 };
 
 // 글쓰기·수정 화면이 함께 쓰는 에디터.
-// 칸 테두리 없이 종이처럼 두고, 포커스가 가면 surface 배경이 깔려서 지금 어디에 쓰는지 보이게 한다.
+// 칸 테두리 없이 종이처럼 두고, 포커스가 가면 surface 배경 + 왼쪽 본문색 막대(3px)로 지금 쓰는 칸을 보여 준다.
+// (배경 차이만으로는 대비가 1.1:1이라 부족 → 막대는 15:1 이상)
 export function PostEditor({ action, initial, submitLabel, pendingLabel, cancelHref }: Props) {
   const [state, formAction, pending] = useActionState(action, {
     error: null,
@@ -57,7 +58,7 @@ export function PostEditor({ action, initial, submitLabel, pendingLabel, cancelH
             document.getElementById("content")?.focus();
           }
         }}
-        className="-mx-3 rounded-lg bg-transparent px-3 py-2 text-2xl leading-tight font-semibold tracking-[-0.02em] text-text transition-colors placeholder:text-text-muted focus:bg-surface focus-visible:outline-none"
+        className="-mx-3 rounded-lg bg-transparent px-3 py-2 text-2xl leading-tight font-semibold tracking-[-0.02em] text-text transition-colors placeholder:text-text-muted focus:bg-surface focus:shadow-[inset_3px_0_0_var(--accent)] focus-visible:outline-none"
       />
 
       <label htmlFor="content" className="sr-only">
@@ -72,7 +73,7 @@ export function PostEditor({ action, initial, submitLabel, pendingLabel, cancelH
         required
         aria-invalid={state.error ? true : undefined}
         aria-describedby={state.error ? "editor-error" : undefined}
-        className="-mx-3 mt-2 min-h-[50vh] flex-1 resize-none rounded-lg bg-transparent px-3 py-2 text-[17px] leading-[1.8] text-text transition-colors field-sizing-content placeholder:text-text-muted focus:bg-surface focus-visible:outline-none"
+        className="-mx-3 mt-2 min-h-[50vh] flex-1 resize-none rounded-lg bg-transparent px-3 py-2 text-[17px] leading-[1.8] text-text transition-colors field-sizing-content placeholder:text-text-muted focus:bg-surface focus:shadow-[inset_3px_0_0_var(--accent)] focus-visible:outline-none"
       />
 
       <TagInput defaultTags={state.tags} />
