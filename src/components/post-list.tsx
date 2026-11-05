@@ -1,6 +1,6 @@
 import Link from "next/link";
+import { PostListItem } from "@/components/post-list-item";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
-import { formatPostDate, getPostHeadline } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 // 한 번에 불러오는 글 수. 글이 많아지면 '더 보기'를 붙인다(지금은 MVP).
@@ -54,34 +54,9 @@ export async function PostList({ tag }: { tag: string | null }) {
         {tag ? `#${tag} 태그가 붙은 글` : "내 글 목록"}
       </h1>
       <ul className="flex flex-col">
-        {posts.map((post) => {
-          const { headline, preview } = getPostHeadline(post.title, post.content);
-          return (
-            <li key={post.id} className="border-b border-border last:border-b-0">
-              <Link
-                href={`/posts/${post.id}`}
-                className="-mx-3 my-1 flex flex-col gap-1 rounded-lg px-3 py-4 transition-colors hover:bg-surface"
-              >
-                <time dateTime={post.created_at} className="text-sm text-text-muted">
-                  {formatPostDate(post.created_at)}
-                </time>
-                <span className="line-clamp-1 text-lg leading-snug font-semibold tracking-[-0.01em] text-text">
-                  {headline}
-                </span>
-                {preview && (
-                  <span className="line-clamp-2 text-base leading-relaxed text-text-muted">{preview}</span>
-                )}
-                {post.tags.length > 0 && (
-                  <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-text-muted">
-                    {post.tags.map((tag) => (
-                      <span key={tag}>#{tag}</span>
-                    ))}
-                  </span>
-                )}
-              </Link>
-            </li>
-          );
-        })}
+        {posts.map((post) => (
+          <PostListItem key={post.id} post={post} />
+        ))}
       </ul>
     </section>
   );

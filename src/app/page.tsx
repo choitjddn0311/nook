@@ -2,6 +2,7 @@ import { primaryButton } from "@/lib/button-styles";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BottomBar } from "@/components/bottom-bar";
+import { PastBanner } from "@/components/past-banner";
 import { PostList, PostListSkeleton } from "@/components/post-list";
 import { TagFilter } from "@/components/tag-filter";
 import { normalizeTag } from "@/lib/tags";
@@ -12,6 +13,11 @@ export default function Home({ searchParams }: PageProps<"/">) {
 
   return (
     <>
+      {/* 지난 오늘 쓴 글이 있는 날에만 보이는 한 줄 안내 */}
+      <Suspense fallback={null}>
+        <PastBanner />
+      </Suspense>
+
       <Suspense fallback={null}>
         {tagPromise.then((tag) => (
           <TagFilter active={tag} />

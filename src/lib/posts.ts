@@ -19,3 +19,16 @@ export async function getPost(id: string) {
   if (error) throw new Error("글을 불러오지 못했어요.");
   return data;
 }
+
+// 글 아래 '덧붙인 생각'들 (오래된 순). RLS 때문에 내 메모만 온다.
+export async function getPostNotes(postId: string) {
+  if (!isPostId(postId)) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("post_notes")
+    .select("id, post_id, user_id, content, created_at")
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error("덧붙인 생각을 불러오지 못했어요.");
+  return data ?? [];
+}

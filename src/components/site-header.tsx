@@ -16,7 +16,7 @@ export function SiteHeader() {
       <div className="flex items-center gap-1">
         {/* 로그인 여부는 쿠키를 읽어야 알 수 있다. 이 부분만 요청 때 그리고, 헤더 나머지는 미리 만들어 둔다. */}
         <Suspense fallback={null}>
-          <LogoutButton />
+          <SignedInLinks />
         </Suspense>
         <ThemeToggle />
       </div>
@@ -24,19 +24,24 @@ export function SiteHeader() {
   );
 }
 
-async function LogoutButton() {
+// 로그인했을 때만 보이는 헤더 링크: 지난 생각 · 로그아웃
+async function SignedInLinks() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   if (!data?.claims) return null;
 
+  const linkClass =
+    "inline-flex min-h-11 items-center rounded-md px-2.5 text-sm text-text-muted transition-[color,transform] duration-100 ease-out hover:text-text active:scale-95";
   return (
-    <form action={logout}>
-      <button
-        type="submit"
-        className="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-text-muted transition-[color,transform] duration-100 ease-out hover:text-text active:scale-95"
-      >
-        로그아웃
-      </button>
-    </form>
+    <>
+      <Link href="/past" className={linkClass}>
+        지난 생각
+      </Link>
+      <form action={logout}>
+        <button type="submit" className={linkClass}>
+          로그아웃
+        </button>
+      </form>
+    </>
   );
 }
