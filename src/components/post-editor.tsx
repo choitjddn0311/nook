@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useRef } from "react";
-import type { EditorState } from "@/app/write/actions";
+import type { EditorState } from "@/lib/post-form";
 
 type Props = {
   action: (prev: EditorState, formData: FormData) => Promise<EditorState>;
