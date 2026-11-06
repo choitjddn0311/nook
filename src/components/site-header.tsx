@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { logout } from "@/app/auth-actions";
+import { NavLink } from "@/components/nav-link";
 import { NookLogo } from "@/components/nook-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/lib/supabase/server";
@@ -26,24 +26,18 @@ export function SiteHeader() {
   );
 }
 
-// 로그인했을 때만 보이는 헤더 링크: 지난 생각 · 로그아웃
+// 로그인했을 때만 보이는 헤더 링크: 지난 생각 · 나(마이페이지). 로그아웃은 마이페이지 맨 아래로 옮겼다.
 async function SignedInLinks() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   if (!data?.claims) return null;
 
-  const linkClass =
-    "inline-flex min-h-11 items-center rounded-md px-2.5 text-sm text-text-muted transition-[color,transform] duration-100 ease-out hover:text-text active:scale-95";
   return (
     <>
-      <Link href="/past" className={linkClass}>
-        지난 생각
-      </Link>
-      <form action={logout}>
-        <button type="submit" className={linkClass}>
-          로그아웃
-        </button>
-      </form>
+      <NavLink href="/past">지난 생각</NavLink>
+      <NavLink href="/me" label="마이페이지">
+        나
+      </NavLink>
     </>
   );
 }
