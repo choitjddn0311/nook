@@ -27,7 +27,7 @@ export function TagInput({ tags, onChange }: { tags: string[]; onChange: (tags: 
   }
 
   return (
-    <div className="-mx-3 mt-2 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 transition-shadow focus-within:shadow-[inset_3px_0_0_var(--accent)]">
+    <div className="-mx-3 mt-2 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2">
       {tags.map((tag) => (
         <span key={tag} className="inline-flex items-center rounded-full bg-surface text-sm text-text">
           <span className="pl-3">#{tag}</span>
@@ -85,7 +85,7 @@ export function TagInput({ tags, onChange }: { tags: string[]; onChange: (tags: 
         onBlur={() => {
           if (normalizeTag(draft)) commit(draft);
         }}
-        className="h-9 min-w-32 flex-1 bg-transparent text-base text-text placeholder:text-text-muted focus-visible:outline-none disabled:cursor-not-allowed"
+        className="h-9 min-w-32 flex-1 bg-transparent text-base text-text caret-accent placeholder:text-text-muted focus-visible:outline-none disabled:cursor-not-allowed"
       />
       <p id={hintId} className="sr-only">
         엔터, 쉼표, 띄어쓰기로 태그를 추가합니다. 최대 {TAG_MAX_COUNT}개.

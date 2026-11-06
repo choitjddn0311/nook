@@ -1,4 +1,4 @@
-import { primaryButton } from "@/lib/button-styles";
+import { primaryButton, secondaryButton } from "@/lib/button-styles";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BottomBar } from "@/components/bottom-bar";
@@ -32,11 +32,12 @@ export default function Home({ searchParams }: PageProps<"/">) {
       </Suspense>
 
       {/* 하단 고정: 폰에서 엄지가 닿는 곳 */}
-      <BottomBar className="flex justify-end">
-        <Link
-          href="/write"
-          className={primaryButton}
-        >
+      <BottomBar className="flex items-center justify-between gap-2">
+        {/* 15단계 랜덤 생각: 내 글 중 하나를 무작위로 (매번 서버에서 골라야 해서 일반 링크) */}
+        <a href="/random" className={secondaryButton}>
+          아무 글 보기
+        </a>
+        <Link href="/write" className={primaryButton}>
           새 글 쓰기
         </Link>
       </BottomBar>

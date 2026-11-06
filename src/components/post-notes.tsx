@@ -84,6 +84,7 @@ export function PostNotes({ postId, initialNotes }: { postId: string; initialNot
       )}
 
       <div className="mt-6">
+        {/* 밑줄 입력칸: 평소 보조 글자색 1px(대비 5.5:1 이상, WCAG 1.4.11), 쓰는 중엔 본문색 2px */}
         <label htmlFor="note-input" className="sr-only">
           지금의 생각 덧붙이기
         </label>
@@ -102,7 +103,7 @@ export function PostNotes({ postId, initialNotes }: { postId: string; initialNot
           rows={3}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "note-error" : undefined}
-          className="-mx-3 block w-[calc(100%+1.5rem)] resize-none rounded-lg bg-transparent px-3 py-2 text-[17px] leading-[1.8] text-text transition-shadow field-sizing-content placeholder:text-text-muted focus:shadow-[inset_3px_0_0_var(--accent)] focus-visible:outline-none"
+          className="block w-full resize-none bg-transparent px-0 py-2 text-[17px] leading-[1.7] text-text caret-accent shadow-[inset_0_-1px_0_var(--text-muted)] transition-shadow field-sizing-content placeholder:text-text-muted focus:shadow-[inset_0_-2px_0_var(--text)] focus-visible:outline-none"
         />
         <div className="mt-2 flex items-center justify-between gap-3">
           <p id="note-error" role="alert" className="text-sm font-medium text-text">
