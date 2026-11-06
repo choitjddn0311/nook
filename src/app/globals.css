@@ -122,10 +122,16 @@ input[type="search"]::-webkit-search-decoration {
   appearance: none;
 }
 
-/* 찾기 패널: 누른 버튼(오른쪽 아래) 쪽에서 위로 펼쳐진다 */
-.search-pop {
-  transform-origin: bottom right;
-  animation: nook-dialog-in 160ms ease-out;
+/* 찾기 칸: 버튼 자리(오른쪽)에서 왼쪽으로 가로로 늘어난다 */
+.search-grow {
+  transform-origin: right center;
+  animation: nook-grow-x 160ms ease-out;
+}
+@keyframes nook-grow-x {
+  from {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
 }
 @keyframes nook-dialog-in {
   from {

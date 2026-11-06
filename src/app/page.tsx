@@ -9,7 +9,7 @@ import { TagFilter } from "@/components/tag-filter";
 import { homeHref, parseHomeFilters } from "@/lib/home-filters";
 
 export default function Home({ searchParams }: PageProps<"/">) {
-  // ?q=&tag=&fav=&sort= → 거르기 상태. 주소 값은 요청 때만 알 수 있으므로 Suspense 안에서 읽는다 (Cache Components)
+  // ?q=&tag=&fav= → 거르기 상태. 주소 값은 요청 때만 알 수 있으므로 Suspense 안에서 읽는다 (Cache Components)
   const filtersPromise = searchParams.then(parseHomeFilters);
 
   return (

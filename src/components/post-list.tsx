@@ -8,13 +8,13 @@ import { createClient } from "@/lib/supabase/server";
 const PAGE_SIZE = 100;
 
 export async function PostList({ filters }: { filters: HomeFilters }) {
-  const { q, tag, fav, sort } = filters;
+  const { q, tag, fav } = filters;
   const supabase = await createClient();
   // RLS 때문에 내 글만 온다. 그래도 필요한 칸만 고른다.
   let query = supabase
     .from("posts")
     .select("id, title, content, tags, created_at, is_favorite")
-    .order("created_at", { ascending: sort === "old" })
+    .order("created_at", { ascending: false }) // 항상 최신순
     .limit(PAGE_SIZE);
   if (q) query = query.or(searchCondition(q)); // 제목 또는 본문에 검색어가 들어간 글
   if (tag) query = query.contains("tags", [tag]); // tags 배열에 그 태그가 있는 글 (GIN 인덱스)
@@ -32,7 +32,7 @@ export async function PostList({ filters }: { filters: HomeFilters }) {
     );
   }
 
-  const filtered = hasAnyFilter({ ...filters, sort: "new" }); // 정렬만 바꾼 건 '거르기'가 아님
+  const filtered = hasAnyFilter(filters);
 
   if (!posts || posts.length === 0) {
     if (!filtered) {
@@ -60,11 +60,11 @@ export async function PostList({ filters }: { filters: HomeFilters }) {
       <h1 id="post-list-title" className="sr-only">
         {filtered ? describe(filters) : "내 글 목록"}
       </h1>
-      {/* 거르기·정렬이 걸려 있을 때만: 무엇으로 보고 있는지 + 모두 지우기 */}
-      {hasAnyFilter(filters) && (
+      {/* 거르기가 걸려 있을 때만: 무엇으로 보고 있는지 + 모두 지우기 */}
+      {filtered && (
         <div className="flex items-center justify-between gap-3 pt-2 pb-1 text-sm">
           <p className="min-w-0 truncate text-text-muted" aria-live="polite">
-            {describe(filters)} {posts.length}개{sort === "old" ? " · 오래된 순" : ""}
+            {describe(filters)} {posts.length}개
           </p>
           <Link href="/" className="shrink-0 text-text-muted underline underline-offset-4 hover:text-text">
             모두 지우기
