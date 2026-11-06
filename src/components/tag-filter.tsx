@@ -1,11 +1,14 @@
 import Link from "next/link";
+import { homeHref, type HomeFilters } from "@/lib/home-filters";
 import { createClient } from "@/lib/supabase/server";
 
-// 홈 위쪽의 태그 거르기 줄. 내가 쓴 태그를 많이 쓴 순서로 보여 준다.
-// 글이 몇천 개가 되기 전까지는 태그 칸만 모두 읽어 와서 세는 것으로 충분하다.
-export async function TagFilter({ active }: { active: string | null }) {
+// 홈 위쪽의 거르기 줄: ★ 즐겨찾기 → 전체 → 내가 쓴 태그(많이 쓴 순).
+// 칩을 눌러도 검색어·정렬은 유지된다. 글이 몇천 개가 되기 전까지는 태그 칸만 모두 읽어 세는 것으로 충분하다.
+export async function TagFilter({ filters }: { filters: HomeFilters }) {
+  const active = filters.tag;
   const supabase = await createClient();
   const { data } = await supabase.from("posts").select("tags");
+  if (!data || data.length === 0) return null; // 글이 하나도 없으면 줄 자체를 숨김
 
   const counts = new Map<string, number>();
   for (const row of data ?? []) for (const tag of row.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
@@ -13,23 +16,28 @@ export async function TagFilter({ active }: { active: string | null }) {
 
   // 지금 거르고 있는 태그가 목록에 없으면(오타 주소 등) 그래도 보여 준다
   if (active && !counts.has(active)) tags.unshift(active);
-  if (tags.length === 0) return null;
 
   return (
     // 오른쪽 끝을 서서히 흐리게 해서 칩이 뚝 잘리지 않고 '옆으로 더 있다'는 걸 보여 준다
     <nav
-      aria-label="태그로 거르기"
+      aria-label="즐겨찾기·태그로 거르기"
       className="-mx-4 overflow-x-auto [mask-image:linear-gradient(to_right,black_calc(100%-2.5rem),transparent)] px-4 pt-2 [scrollbar-width:none] sm:-mx-6 sm:px-6"
     >
       <ul className="flex w-max gap-2 pr-8 pb-2">
         <li>
-          <Chip href="/" current={!active}>
+          {/* 누를 때마다 켜고 끔 (태그와 함께 쓸 수 있다) */}
+          <Chip href={homeHref(filters, { fav: !filters.fav })} current={filters.fav}>
+            ★ 즐겨찾기
+          </Chip>
+        </li>
+        <li>
+          <Chip href={homeHref(filters, { tag: null, fav: false })} current={!active && !filters.fav}>
             전체
           </Chip>
         </li>
         {tags.map((tag) => (
           <li key={tag}>
-            <Chip href={`/?tag=${encodeURIComponent(tag)}`} current={active === tag}>
+            <Chip href={homeHref(filters, { tag: active === tag ? null : tag })} current={active === tag}>
               #{tag}
             </Chip>
           </li>

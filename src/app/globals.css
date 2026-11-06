@@ -115,6 +115,24 @@ dialog[open] {
 dialog[open]::backdrop {
   animation: nook-fade-in 160ms ease-out;
 }
+/* 검색칸에 브라우저가 넣는 파란 지우기(×) 버튼 숨기기: 모노크롬이 아니고, 패널의 닫기(×)와 겹쳐 헷갈린다 */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* 찾기 칸: 버튼 자리(오른쪽)에서 왼쪽으로 가로로 늘어난다 */
+.search-grow {
+  transform-origin: right center;
+  animation: nook-grow-x 160ms ease-out;
+}
+@keyframes nook-grow-x {
+  from {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+}
 @keyframes nook-dialog-in {
   from {
     opacity: 0;
