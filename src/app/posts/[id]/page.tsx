@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BottomBar } from "@/components/bottom-bar";
 import { DeletePostButton } from "@/components/delete-post-button";
+import { FavoriteButton } from "@/components/favorite-button";
 import { PostNotes } from "@/components/post-notes";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { primaryButton, secondaryButton } from "@/lib/button-styles";
@@ -54,6 +55,8 @@ async function PostView({ id, from }: { id: string; from: From }) {
               다른 글이 아직 없어요. 글이 더 쌓이면 여기서 하나씩 꺼내 볼 수 있어요.
             </p>
           )}
+          {/* 날짜 줄 오른쪽에 ☆/★ 즐겨찾기 */}
+          <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-text-muted">
             <time dateTime={post.created_at}>{formatPostDate(post.created_at)}</time>
             {edited && (
@@ -63,6 +66,8 @@ async function PostView({ id, from }: { id: string; from: From }) {
               </span>
             )}
           </p>
+            <FavoriteButton postId={post.id} initial={post.is_favorite} />
+          </div>
           {post.title ? (
             <h1 className="text-2xl leading-tight font-semibold tracking-[-0.02em] text-text">{post.title}</h1>
           ) : (

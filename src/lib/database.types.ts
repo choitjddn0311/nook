@@ -20,6 +20,7 @@ export type Database = {
           tags: string[];
           created_at: string;
           updated_at: string;
+          is_favorite: boolean;
         };
         Insert: {
           id?: string;
@@ -29,6 +30,7 @@ export type Database = {
           tags?: string[];
           created_at?: string;
           updated_at?: string;
+          is_favorite?: boolean;
         };
         Update: {
           id?: string;
@@ -38,6 +40,7 @@ export type Database = {
           tags?: string[];
           created_at?: string;
           updated_at?: string;
+          is_favorite?: boolean;
         };
         Relationships: [];
       };

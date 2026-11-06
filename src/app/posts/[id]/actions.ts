@@ -17,3 +17,11 @@ export async function deletePost(id: string): Promise<DeleteState> {
 
   redirect("/");
 }
+
+// 즐겨찾기 켜고 끄기. 별표만 바꾸므로 '고친 날'(updated_at)은 바뀌지 않는다 (DB 트리거가 제목·본문·태그 변경만 셈)
+export async function toggleFavorite(id: string, value: boolean): Promise<{ ok: boolean }> {
+  if (!isPostId(id) || typeof value !== "boolean") return { ok: false };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("posts").update({ is_favorite: value }).eq("id", id).select("id");
+  return { ok: !error && Boolean(data && data.length > 0) };
+}
