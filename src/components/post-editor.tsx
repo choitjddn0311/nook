@@ -24,8 +24,8 @@ const STATUS_TEXT: Record<SaveStatus, string> = {
 };
 
 // 글쓰기·고치기 화면이 함께 쓰는 에디터. 자동 저장된다(저장 버튼 없음).
-// 칸 테두리 없이 종이처럼 두고, 포커스가 가면 왼쪽 본문색 막대(3px, 대비 15:1 이상)로 지금 쓰는 칸을 보여 준다.
-// (예전엔 회색 배경도 깔았는데, 본문 칸이 화면 절반 높이라 회색 덩어리처럼 무거워 보여서 막대만 남김)
+// 칸 테두리·배경·막대 없이 깨끗한 종이처럼 둔다 (Apple 메모처럼).
+// 지금 쓰는 칸은 깜빡이는 커서(본문색)로 보인다 — 글자 입력칸에서는 커서가 포커스 표시 역할을 한다(WCAG 2.4.7).
 export function PostEditor({ initial }: Props) {
   const router = useRouter();
   const [value, setValue] = useState<PostValue>({ title: initial.title, content: initial.content, tags: initial.tags });
@@ -154,7 +154,7 @@ export function PostEditor({ initial }: Props) {
             document.getElementById("content")?.focus();
           }
         }}
-        className="-mx-3 rounded-lg bg-transparent px-3 py-2 text-2xl leading-tight font-semibold tracking-[-0.02em] text-text transition-shadow placeholder:text-text-muted focus:shadow-[inset_3px_0_0_var(--accent)] focus-visible:outline-none"
+        className="-mx-3 rounded-lg bg-transparent px-3 py-2 text-2xl leading-tight font-semibold tracking-[-0.02em] text-text caret-accent placeholder:text-text-muted focus-visible:outline-none"
       />
 
       <label htmlFor="content" className="sr-only">
@@ -167,7 +167,7 @@ export function PostEditor({ initial }: Props) {
         placeholder="떠오르는 대로 적어 보세요."
         autoFocus
         aria-describedby="editor-stats"
-        className="-mx-3 mt-2 min-h-[50vh] flex-1 resize-none rounded-lg bg-transparent px-3 py-2 text-[17px] leading-[1.8] text-text transition-shadow field-sizing-content placeholder:text-text-muted focus:shadow-[inset_3px_0_0_var(--accent)] focus-visible:outline-none"
+        className="-mx-3 mt-2 min-h-[50vh] flex-1 resize-none rounded-lg bg-transparent px-3 py-2 text-[17px] leading-[1.8] text-text caret-accent field-sizing-content placeholder:text-text-muted focus-visible:outline-none"
       />
 
       <TagInput tags={value.tags} onChange={(tags) => change({ tags })} />
