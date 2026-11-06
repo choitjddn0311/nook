@@ -26,7 +26,7 @@ async function EditForm({ id }: { id: string }) {
 
   return (
     <PostEditor
-      initial={{ id: post.id, title: post.title ?? "", content: post.content, tags: post.tags, updatedAt: post.updated_at }}
+      initial={{ id: post.id, title: post.title ?? "", content: post.content, tags: post.tags, format: post.format, updatedAt: post.updated_at }}
     />
   );
 }

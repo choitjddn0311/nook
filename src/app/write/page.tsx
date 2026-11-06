@@ -3,7 +3,7 @@ import { PostEditor } from "@/components/post-editor";
 
 export const metadata: Metadata = { title: "새 글 · Nook" };
 
-const EMPTY = { id: null, title: "", content: "", tags: [], updatedAt: null };
+const EMPTY = { id: null, title: "", content: "", tags: [], format: "plain" as const, updatedAt: null };
 
 export default function WritePage() {
   return (

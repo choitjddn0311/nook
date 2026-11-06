@@ -27,10 +27,32 @@ export function formatPostDate(iso: string, now: Date = new Date()) {
   return d.year === thisYear ? base : `${d.year}년 ${base}`;
 }
 
+// Markdown 기호를 걷어 내고 글자만 남긴다 (목록 미리보기용, 서식이 아니라 내용만 보이게)
+// 예: "# 제목" → "제목", "**굵게**" → "굵게", "[글](주소)" → "글", "- [x] 할 일" → "할 일"
+export function stripMarkdown(md: string) {
+  return md
+    .replace(/```[^\n]*\n?/g, "") // 코드 블록 울타리
+    .replace(/<[^>\n]+>/g, "") // HTML 태그 (글 보기에서도 무시되므로 미리보기에서도 뺀다)
+    .replace(/!\[([^\]]*)\]\((?:[^()\s]|\([^()]*\))*\)/g, "$1") // 이미지 (주소 안 괄호 한 겹까지)
+    .replace(/\[([^\]]*)\]\((?:[^()\s]|\([^()]*\))*\)/g, "$1") // 링크
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "") // 제목
+    .replace(/^\s{0,3}>\s?/gm, "") // 인용
+    .replace(/^\s*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s+)?/gm, "") // 목록·체크 목록
+    .replace(/^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)*\|?\s*$/gm, "") // 표 구분선
+    .replace(/^\s{0,3}(?:[-*_]\s*){3,}$/gm, "") // 가로줄
+    .replace(/\|/g, " ") // 표 칸
+    .replace(/(\*\*|__)(.+?)\1/g, "$2") // 굵게
+    .replace(/(^|[^\w*])\*(?!\s)(.+?)\*(?!\w)/g, "$1$2") // 기울임 (*)
+    .replace(/~~(.+?)~~/g, "$1") // 취소선
+    .replace(/`([^`]+)`/g, "$1"); // 코드
+}
+
 // 목록에 보일 제목과 미리보기.
 // 제목이 없으면 본문 첫 줄을 제목처럼 쓰고, 미리보기는 그다음 내용부터 보여 준다.
-export function getPostHeadline(title: string | null, content: string) {
-  const lines = content.split("\n").map((l) => l.trim());
+// Markdown 글은 기호를 걷어 낸 글자로 계산한다.
+export function getPostHeadline(title: string | null, rawContent: string, format: "plain" | "markdown" = "plain") {
+  const content = format === "markdown" ? stripMarkdown(rawContent) : rawContent;
+  const lines = content.split("\n").map((l) => l.replace(/\s+/g, " ").trim());
   if (title?.trim()) {
     return { headline: title.trim(), preview: lines.filter(Boolean).join(" ") };
   }

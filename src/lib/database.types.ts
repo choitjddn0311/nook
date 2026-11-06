@@ -21,6 +21,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           is_favorite: boolean;
+          format: "plain" | "markdown";
         };
         Insert: {
           id?: string;
@@ -31,6 +32,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           is_favorite?: boolean;
+          format?: "plain" | "markdown";
         };
         Update: {
           id?: string;
@@ -41,6 +43,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           is_favorite?: boolean;
+          format?: "plain" | "markdown";
         };
         Relationships: [];
       };

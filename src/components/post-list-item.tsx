@@ -1,12 +1,20 @@
 import Link from "next/link";
 import { formatPostDate, formatPostTime, getPostHeadline } from "@/lib/format";
 
-type Item = { id: string; title: string | null; content: string; tags: string[]; created_at: string; is_favorite?: boolean };
+type Item = {
+  id: string;
+  title: string | null;
+  content: string;
+  tags: string[];
+  created_at: string;
+  is_favorite?: boolean;
+  format?: "plain" | "markdown";
+};
 
 // 글 목록의 한 줄 (날짜 → 제목/첫 줄 → 미리보기 2줄 → 태그). 홈 목록과 '과거의 생각'이 같이 쓴다.
 // when="time": 구역 제목에 이미 날짜가 있을 때 날짜 대신 시각만 (지난 생각 화면)
 export function PostListItem({ post, when = "date" }: { post: Item; when?: "date" | "time" }) {
-  const { headline, preview } = getPostHeadline(post.title, post.content);
+  const { headline, preview } = getPostHeadline(post.title, post.content, post.format);
   return (
     <li className="border-b border-border last:border-b-0">
       <Link

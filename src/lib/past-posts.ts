@@ -2,7 +2,14 @@ import "server-only";
 import { matchPastDay, pastDays, seoulDayRange, todayInSeoul, type PastDay } from "@/lib/on-this-day";
 import { createClient } from "@/lib/supabase/server";
 
-export type PastPost = { id: string; title: string | null; content: string; tags: string[]; created_at: string };
+export type PastPost = {
+  id: string;
+  title: string | null;
+  content: string;
+  tags: string[];
+  created_at: string;
+  format: "plain" | "markdown";
+};
 export type PastGroup = PastDay & { posts: PastPost[] };
 
 // 한 달 전·6개월 전·지난 해들의 '오늘' 쓴 글을 날짜 구역별로 모아 온다. 글이 없는 구역은 빠진다.
@@ -33,7 +40,7 @@ export async function getPastGroups(now?: Date): Promise<PastGroup[]> {
     .join(",");
   const { data: posts, error } = await supabase
     .from("posts")
-    .select("id, title, content, tags, created_at")
+    .select("id, title, content, tags, created_at, format")
     .or(ranges)
     .order("created_at", { ascending: false });
   if (error) throw new Error("지난 글을 불러오지 못했어요.");
