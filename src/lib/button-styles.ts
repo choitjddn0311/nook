@@ -11,3 +11,6 @@ export const primaryButton = `${base} bg-accent px-4 font-semibold text-accent-c
 
 // 보조 버튼: 글자만 (취소·지우기·로그아웃 등)
 export const quietButton = `${base} px-3 text-text-muted hover:text-text`;
+
+// 보조 강조 버튼: 옅은 회색 면 + 본문색 글자 (한 화면에 주요 버튼이 이미 있을 때, 예: 글 보기의 '덧붙이기')
+export const secondaryButton = `${base} bg-surface px-4 font-semibold text-text`;

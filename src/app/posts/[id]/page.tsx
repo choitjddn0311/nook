@@ -5,9 +5,10 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BottomBar } from "@/components/bottom-bar";
 import { DeletePostButton } from "@/components/delete-post-button";
+import { PostNotes } from "@/components/post-notes";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { formatPostDate } from "@/lib/format";
-import { getPost } from "@/lib/posts";
+import { getPost, getPostNotes } from "@/lib/posts";
 
 export const metadata: Metadata = { title: "글 · Nook" };
 
@@ -33,7 +34,7 @@ export default function PostPage({ params }: PageProps<"/posts/[id]">) {
 }
 
 async function PostView({ id }: { id: string }) {
-  const post = await getPost(id);
+  const [post, notes] = await Promise.all([getPost(id), getPostNotes(id)]);
   if (!post) notFound();
 
   // 1분 넘게 지나서 고쳤으면 '고친 날'도 보여 준다
@@ -41,7 +42,7 @@ async function PostView({ id }: { id: string }) {
 
   return (
     <>
-      <article className="flex-1 pt-4 pb-8">
+      <article className="flex-1 pt-4 pb-12">
         <header className="flex flex-col gap-2">
           <p className="text-sm text-text-muted">
             <time dateTime={post.created_at}>{formatPostDate(post.created_at)}</time>
@@ -77,6 +78,9 @@ async function PostView({ id }: { id: string }) {
             ))}
           </ul>
         )}
+
+        {/* 원래 글은 그대로, 아래에 날짜별로 지금의 생각을 덧붙인다 */}
+        <PostNotes postId={post.id} initialNotes={notes} />
       </article>
 
       {/* 하단 고정: 지우기 / 고치기 */}

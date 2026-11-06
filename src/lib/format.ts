@@ -42,3 +42,19 @@ export function getPostHeadline(title: string | null, content: string) {
     .join(" ");
   return { headline, preview };
 }
+
+// "오후 11:59" — 같은 날 쓴 글을 구분할 때 (한국 시간)
+// 서버 환경에 따라 Intl이 "PM 11:59"로 내기도 해서, 24시간 숫자를 받아 '오전/오후'를 직접 붙인다.
+const timeFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: TIME_ZONE,
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+export function formatPostTime(iso: string) {
+  const parts = timeFormat.formatToParts(new Date(iso));
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
+  const minute = parts.find((p) => p.type === "minute")?.value ?? "00";
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour < 12 ? "오전" : "오후"} ${h12}:${minute}`;
+}
