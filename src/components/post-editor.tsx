@@ -1,18 +1,42 @@
 "use client";
 
 import { primaryButton } from "@/lib/button-styles";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BottomBar } from "@/components/bottom-bar";
 import { TagInput } from "@/components/tag-input";
 import { createAutosaver, type SaveStatus } from "@/lib/autosaver";
 import { clearDraft, readDraft, sameValue } from "@/lib/drafts";
-import type { PostValue } from "@/lib/post-form";
+import type { PostFormat, PostValue } from "@/lib/post-form";
 import { formatTextStats } from "@/lib/text-stats";
 
 type Props = {
   initial: PostValue & { id: string | null; updatedAt: string | null };
 };
+
+// Markdown 미리보기는 Markdown으로 쓸 때만 내려받는다 (일반 글만 쓰면 이 코드를 받지 않음)
+const MarkdownPreview = dynamic(() => import("@/components/markdown-view").then((m) => m.MarkdownView), {
+  ssr: false,
+  loading: () => <p className="text-sm text-text-muted">미리보기를 준비하는 중…</p>,
+});
+
+// 새 글을 어떤 방식으로 시작할지 이 기기에 기억 (마지막에 고른 방식)
+const FORMAT_KEY = "nook-default-format";
+function readDefaultFormat(): PostFormat {
+  try {
+    return localStorage.getItem(FORMAT_KEY) === "markdown" ? "markdown" : "plain";
+  } catch {
+    return "plain";
+  }
+}
+function rememberFormat(format: PostFormat) {
+  try {
+    localStorage.setItem(FORMAT_KEY, format);
+  } catch {
+    // 저장이 막혀 있으면 기억만 못 한다
+  }
+}
 
 const STATUS_TEXT: Record<SaveStatus, string> = {
   idle: "",
@@ -28,7 +52,13 @@ const STATUS_TEXT: Record<SaveStatus, string> = {
 // 지금 쓰는 칸은 깜빡이는 커서(본문색)로 보인다 — 글자 입력칸에서는 커서가 포커스 표시 역할을 한다(WCAG 2.4.7).
 export function PostEditor({ initial }: Props) {
   const router = useRouter();
-  const [value, setValue] = useState<PostValue>({ title: initial.title, content: initial.content, tags: initial.tags });
+  const [value, setValue] = useState<PostValue>({
+    title: initial.title,
+    content: initial.content,
+    tags: initial.tags,
+    format: initial.format,
+  });
+  const [tab, setTab] = useState<"write" | "preview">("write"); // 폰에서 Markdown 쓰기/미리보기
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [errorText, setErrorText] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -38,7 +68,7 @@ export function PostEditor({ initial }: Props) {
   const [saver] = useState(() =>
     createAutosaver({
       id: initial.id,
-      saved: { title: initial.title, content: initial.content, tags: initial.tags },
+      saved: { title: initial.title, content: initial.content, tags: initial.tags, format: initial.format },
       onStatus: (s, message) => {
         setStatus(s);
         setErrorText(s === "error" ? (message ?? null) : null);
@@ -64,16 +94,22 @@ export function PostEditor({ initial }: Props) {
     if (initial.id && readDraft(null)?.newId === initial.id) clearDraft(null);
 
     const draft = readDraft(initial.id);
-    if (!draft) return;
+    if (!draft) {
+      // 새 글은 마지막에 고른 방식(일반/Markdown)으로 시작한다
+      if (!initial.id && readDefaultFormat() !== initial.format) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setValue((v) => ({ ...v, format: readDefaultFormat() }));
+      }
+      return;
+    }
     const serverTime = initial.updatedAt ? Date.parse(initial.updatedAt) : 0;
-    const current = { title: initial.title, content: initial.content, tags: initial.tags };
+    const current = { title: initial.title, content: initial.content, tags: initial.tags, format: initial.format };
     if (draft.savedAt <= serverTime || sameValue(draft, current) || !draft.content.trim()) {
       clearDraft(initial.id);
       return;
     }
-    const restored = { title: draft.title, content: draft.content, tags: draft.tags };
+    const restored = { title: draft.title, content: draft.content, tags: draft.tags, format: draft.format };
     // 브라우저 저장소는 화면이 뜬 뒤에만 읽을 수 있어서 effect 안에서 한 번 반영한다
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValue(restored);
     setNotice("이 기기에 저장 안 된 내용이 있어 이어서 불러왔어요.");
     saver.adoptNewId(draft.newId);
@@ -98,6 +134,15 @@ export function PostEditor({ initial }: Props) {
     };
   }, [saver]);
 
+  function chooseFormat(format: PostFormat) {
+    if (format === value.format) return;
+    change({ format });
+    rememberFormat(format);
+    setTab("write");
+  }
+
+  const markdown = value.format === "markdown";
+
   async function finish() {
     if (finishing) return;
     setFinishing(true);
@@ -120,7 +165,11 @@ export function PostEditor({ initial }: Props) {
 
   return (
     <div
-      className="flex flex-1 flex-col"
+      // Markdown이면 PC(lg)에서 쓰기·미리보기를 나란히 놓도록 본문 폭(42rem)보다 넓게 편다
+      className={
+        "flex flex-1 flex-col " +
+        (markdown ? "lg:relative lg:left-1/2 lg:w-[min(64rem,calc(100vw-3rem))] lg:-translate-x-1/2" : "")
+      }
       // ⌘+Enter (Mac) / Ctrl+Enter (Windows)로 완료
       onKeyDown={(e) => {
         if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -134,6 +183,55 @@ export function PostEditor({ initial }: Props) {
           {notice}
         </p>
       )}
+
+      {/* 글 방식: 일반 / Markdown (고른 방식은 다음 새 글에도 기억) */}
+      <div className="mb-1 flex items-center justify-end gap-2">
+        {markdown && (
+          // 폰에서만: 쓰기 / 미리보기 전환 (PC는 나란히 보여서 필요 없음)
+          <div role="group" aria-label="쓰기·미리보기" className="mr-auto flex rounded-full bg-surface p-0.5 lg:hidden">
+            {(
+              [
+                ["write", "쓰기"],
+                ["preview", "미리보기"],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={tab === key}
+                onClick={() => setTab(key)}
+                className={
+                  "relative h-9 rounded-full px-3.5 text-sm transition-colors after:absolute after:-inset-y-1 after:inset-x-0 " +
+                  (tab === key ? "bg-bg font-semibold text-text" : "text-text-muted hover:text-text")
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+        <div role="group" aria-label="글 방식" className="flex rounded-full bg-surface p-0.5">
+          {(
+            [
+              ["plain", "일반"],
+              ["markdown", "Markdown"],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={value.format === key}
+              onClick={() => chooseFormat(key)}
+              className={
+                "relative h-9 rounded-full px-3.5 text-sm transition-colors after:absolute after:-inset-y-1 after:inset-x-0 " +
+                (value.format === key ? "bg-bg font-semibold text-text" : "text-text-muted hover:text-text")
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <label htmlFor="title" className="sr-only">
         제목 (선택)
@@ -157,18 +255,36 @@ export function PostEditor({ initial }: Props) {
         className="-mx-3 rounded-lg bg-transparent px-3 py-2 text-2xl leading-tight font-semibold tracking-[-0.02em] text-text caret-accent placeholder:text-text-muted focus-visible:outline-none"
       />
 
-      <label htmlFor="content" className="sr-only">
-        본문
-      </label>
-      <textarea
-        id="content"
-        value={value.content}
-        onChange={(e) => change({ content: e.target.value })}
-        placeholder="떠오르는 대로 적어 보세요."
-        autoFocus
-        aria-describedby="editor-stats"
-        className="-mx-3 mt-2 min-h-[50vh] flex-1 resize-none rounded-lg bg-transparent px-3 py-2 text-[17px] leading-[1.8] text-text caret-accent field-sizing-content placeholder:text-text-muted focus-visible:outline-none"
-      />
+      <div className={markdown ? "mt-2 flex flex-1 flex-col lg:grid lg:grid-cols-2 lg:gap-6" : "mt-2 flex flex-1 flex-col"}>
+        <label htmlFor="content" className="sr-only">
+          본문
+        </label>
+        <textarea
+          id="content"
+          value={value.content}
+          onChange={(e) => change({ content: e.target.value })}
+          placeholder={markdown ? "Markdown으로 적어 보세요. **굵게**, # 제목, - 목록" : "떠오르는 대로 적어 보세요."}
+          autoFocus
+          aria-describedby="editor-stats"
+          className={
+            "-mx-3 min-h-[50vh] flex-1 resize-none rounded-lg bg-transparent px-3 py-2 text-[17px] leading-[1.8] text-text caret-accent field-sizing-content placeholder:text-text-muted focus-visible:outline-none " +
+            (markdown && tab === "preview" ? "hidden lg:block" : "")
+          }
+        />
+        {markdown && (
+          // 미리보기: 옅은 surface 면으로 '쓰는 칸이 아님'을 구분
+          <section
+            aria-label="미리보기"
+            className={"min-h-[50vh] rounded-lg bg-surface px-4 py-3 " + (tab === "write" ? "hidden lg:block" : "")}
+          >
+            {value.content.trim() ? (
+              <MarkdownPreview content={value.content} />
+            ) : (
+              <p className="text-sm text-text-muted">미리 볼 내용이 아직 없어요.</p>
+            )}
+          </section>
+        )}
+      </div>
 
       <TagInput tags={value.tags} onChange={(tags) => change({ tags })} />
 

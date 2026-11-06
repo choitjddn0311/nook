@@ -13,7 +13,7 @@ export async function getPost(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("posts")
-    .select("id, title, content, tags, created_at, updated_at, is_favorite")
+    .select("id, title, content, tags, created_at, updated_at, is_favorite, format")
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error("글을 불러오지 못했어요.");

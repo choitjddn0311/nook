@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { BottomBar } from "@/components/bottom-bar";
 import { DeletePostButton } from "@/components/delete-post-button";
 import { FavoriteButton } from "@/components/favorite-button";
+import { MarkdownView } from "@/components/markdown-view";
 import { PostNotes } from "@/components/post-notes";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { primaryButton, secondaryButton } from "@/lib/button-styles";
@@ -75,8 +76,14 @@ async function PostView({ id, from }: { id: string; from: From }) {
           )}
         </header>
 
-        {/* 줄바꿈을 그대로 살려서 보여 준다 */}
-        <div className="mt-6 text-[17px] leading-[1.8] whitespace-pre-wrap text-text">{post.content}</div>
+        {/* Markdown 글은 서식으로(서버에서 그려 보냄), 일반 글은 줄바꿈을 그대로 살려서 */}
+        {post.format === "markdown" ? (
+          <div className="mt-6">
+            <MarkdownView content={post.content} />
+          </div>
+        ) : (
+          <div className="mt-6 text-[17px] leading-[1.8] whitespace-pre-wrap text-text">{post.content}</div>
+        )}
 
         {post.tags.length > 0 && (
           <ul className="mt-8 flex flex-wrap gap-2" aria-label="태그">

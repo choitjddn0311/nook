@@ -225,6 +225,128 @@ input[type="search"]::-webkit-search-decoration {
   }
 }
 
+/* ───────────────────────────────────────────────
+   Markdown 글 서식 (src/components/markdown-view.tsx)
+   모노크롬 토큰만 쓴다. 강조는 굵기·진하기·밑줄로.
+   ─────────────────────────────────────────────── */
+.markdown {
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--text);
+}
+.markdown > * + * {
+  margin-top: 0.9em;
+}
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  margin-top: 1.6em;
+}
+.markdown h2 {
+  font-size: 1.35em;
+  letter-spacing: -0.02em;
+}
+.markdown h3 {
+  font-size: 1.15em;
+}
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  font-size: 1em;
+}
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown strong {
+  font-weight: 700;
+}
+.markdown del {
+  color: var(--text-muted);
+}
+.markdown a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.markdown ul,
+.markdown ol {
+  padding-left: 1.4em;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li + li {
+  margin-top: 0.25em;
+}
+/* 체크 목록: 체크칸이 있는 줄만 점 대신 체크칸 (보기 전용).
+   같은 목록에 일반 줄이 섞여 있어도 그 줄의 점은 그대로 둔다. */
+.markdown li.task-list-item {
+  list-style: none;
+}
+.markdown li.task-list-item > input[type="checkbox"] {
+  margin-left: -1.4em;
+  margin-right: 0.15em; /* 체크칸 뒤 띄어쓰기 한 칸과 합쳐 일반 목록 글자와 같은 줄에서 시작 */
+  width: 1em;
+  accent-color: var(--text);
+  vertical-align: -0.1em;
+}
+.markdown blockquote {
+  padding-left: 1em;
+  color: var(--text-muted);
+  box-shadow: inset 2px 0 0 var(--text-muted);
+}
+.markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.88em;
+  padding: 0.1em 0.35em;
+  border-radius: 0.3em;
+  background: var(--surface);
+}
+.markdown pre {
+  overflow-x: auto;
+  padding: 0.9em 1em;
+  border-radius: 0.6em;
+  background: var(--surface);
+  line-height: 1.6;
+}
+.markdown pre code {
+  padding: 0;
+  background: none;
+}
+.markdown hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+/* 표: 넓으면 표만 옆으로 넘긴다 (페이지 가로 스크롤 방지) */
+.markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+.markdown th,
+.markdown td {
+  padding: 0.4em 0.8em;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.markdown th {
+  font-weight: 600;
+}
+/* 미리보기 칸(surface) 안에서는 코드 배경이 묻히지 않게 한 단계 밝게 */
+section[aria-label="미리보기"] .markdown code,
+section[aria-label="미리보기"] .markdown pre {
+  background: var(--bg);
+}
+
 /* 움직임 줄이기를 켠 사용자에게는 전환 효과를 끈다 */
 @media (prefers-reduced-motion: reduce) {
   *,

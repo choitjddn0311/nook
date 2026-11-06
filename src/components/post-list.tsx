@@ -13,7 +13,7 @@ export async function PostList({ filters }: { filters: HomeFilters }) {
   // RLS 때문에 내 글만 온다. 그래도 필요한 칸만 고른다.
   let query = supabase
     .from("posts")
-    .select("id, title, content, tags, created_at, is_favorite")
+    .select("id, title, content, tags, created_at, is_favorite, format")
     .order("created_at", { ascending: false }) // 항상 최신순
     .limit(PAGE_SIZE);
   if (q) query = query.or(searchCondition(q)); // 제목 또는 본문에 검색어가 들어간 글

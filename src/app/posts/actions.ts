@@ -14,13 +14,14 @@ export async function savePost(input: {
   title: string;
   content: string;
   tags: string[];
+  format: "plain" | "markdown";
 }): Promise<SaveResult> {
-  const { title, content, tags, error } = validatePost(input);
+  const { title, content, tags, format, error } = validatePost(input);
   if (error) return { ok: false, error };
   if (!isPostId(input.id)) return { ok: false, error: "글을 찾지 못했어요." };
 
   const supabase = await createClient();
-  const row = { title: title || null, content, tags };
+  const row = { title: title || null, content, tags, format };
 
   if (input.isNew) {
     // user_id는 넣지 않는다. DB 기본값 auth.uid() + RLS가 로그인한 사람으로 채우고 확인한다.

@@ -17,6 +17,7 @@ export function readDraft(postId: string | null): Draft | null {
       title: typeof d.title === "string" ? d.title : "",
       content: d.content,
       tags: Array.isArray(d.tags) ? d.tags.filter((t) => typeof t === "string") : [],
+      format: d.format === "markdown" ? "markdown" : "plain",
       savedAt: d.savedAt,
       newId: typeof d.newId === "string" ? d.newId : undefined,
     };
@@ -44,7 +45,12 @@ export function clearDraft(postId: string | null) {
 
 // 두 내용이 같은지 (자동 저장할 필요가 있는지 판단)
 export function sameValue(a: PostValue, b: PostValue) {
-  return a.title === b.title && a.content === b.content && a.tags.join("\u0000") === b.tags.join("\u0000");
+  return (
+    a.title === b.title &&
+    a.content === b.content &&
+    a.format === b.format &&
+    a.tags.join("\u0000") === b.tags.join("\u0000")
+  );
 }
 
 // 새 글 id 만들기 (UUID v4).

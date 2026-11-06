@@ -2,7 +2,8 @@
 // (서버 액션 파일에 두면 외부에서 호출 가능한 액션으로 노출되므로 일반 모듈로 분리)
 import { parseTags, validateTags } from "@/lib/tags";
 
-export type PostValue = { title: string; content: string; tags: string[] };
+export type PostFormat = "plain" | "markdown";
+export type PostValue = { title: string; content: string; tags: string[]; format: PostFormat };
 
 export const TITLE_MAX = 200;
 export const CONTENT_MAX = 100_000;
@@ -14,6 +15,7 @@ export function validatePost(input: unknown): PostValue & { error: string | null
   const content = typeof raw.content === "string" ? raw.content.replace(/\s+$/, "") : "";
   const tagList = Array.isArray(raw.tags) ? raw.tags.filter((t): t is string => typeof t === "string") : [];
   const tags = parseTags(tagList);
+  const format: PostFormat = raw.format === "markdown" ? "markdown" : "plain";
 
   let error: string | null = null;
   if (!content.trim()) error = "본문을 한 글자 이상 적어 주세요.";
@@ -21,5 +23,5 @@ export function validatePost(input: unknown): PostValue & { error: string | null
   else if (content.length > CONTENT_MAX) error = `본문은 ${CONTENT_MAX.toLocaleString()}자까지 쓸 수 있어요.`;
   else error = validateTags(tags);
 
-  return { title, content, tags, error };
+  return { title, content, tags, format, error };
 }
