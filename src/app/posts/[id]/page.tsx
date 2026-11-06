@@ -1,4 +1,3 @@
-import { primaryButton } from "@/lib/button-styles";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,12 +6,17 @@ import { BottomBar } from "@/components/bottom-bar";
 import { DeletePostButton } from "@/components/delete-post-button";
 import { PostNotes } from "@/components/post-notes";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
+import { primaryButton, secondaryButton } from "@/lib/button-styles";
 import { formatPostDate } from "@/lib/format";
 import { getPost, getPostNotes } from "@/lib/posts";
 
 export const metadata: Metadata = { title: "글 · Nook" };
 
-export default function PostPage({ params }: PageProps<"/posts/[id]">) {
+// from=random: 홈의 '아무 글 보기'·'다른 글'로 들어온 경우 (15단계 랜덤 생각)
+// from=only:   '다른 글'을 눌렀는데 이 글 하나뿐인 경우
+type From = "random" | "only" | null;
+
+export default function PostPage({ params, searchParams }: PageProps<"/posts/[id]">) {
   return (
     <div className="flex flex-1 flex-col">
       <nav className="pt-2">
@@ -25,15 +29,15 @@ export default function PostPage({ params }: PageProps<"/posts/[id]">) {
       </nav>
       {/* 주소의 글 번호와 글 내용은 요청 때 읽는다 (Cache Components) */}
       <Suspense fallback={<PostSkeleton />}>
-        {params.then(({ id }) => (
-          <PostView id={id} />
+        {Promise.all([params, searchParams]).then(([{ id }, sp]) => (
+          <PostView id={id} from={sp.from === "random" || sp.from === "only" ? sp.from : null} />
         ))}
       </Suspense>
     </div>
   );
 }
 
-async function PostView({ id }: { id: string }) {
+async function PostView({ id, from }: { id: string; from: From }) {
   const [post, notes] = await Promise.all([getPost(id), getPostNotes(id)]);
   if (!post) notFound();
 
@@ -44,6 +48,12 @@ async function PostView({ id }: { id: string }) {
     <>
       <article className="flex-1 pt-4 pb-12">
         <header className="flex flex-col gap-2">
+          {from === "random" && <p className="text-sm text-text-muted">아무 글이나 꺼낸 글이에요.</p>}
+          {from === "only" && (
+            <p role="status" className="rounded-lg bg-surface px-3 py-2 text-sm text-text">
+              다른 글이 아직 없어요. 글이 더 쌓이면 여기서 하나씩 꺼내 볼 수 있어요.
+            </p>
+          )}
           <p className="text-sm text-text-muted">
             <time dateTime={post.created_at}>{formatPostDate(post.created_at)}</time>
             {edited && (
@@ -83,15 +93,20 @@ async function PostView({ id }: { id: string }) {
         <PostNotes postId={post.id} initialNotes={notes} />
       </article>
 
-      {/* 하단 고정: 지우기 / 고치기 */}
-      <BottomBar className="flex items-center justify-between">
+      {/* 하단 고정: 지우기 / (다른 글) 고치기 */}
+      <BottomBar className="flex items-center justify-between gap-2">
         <DeletePostButton postId={post.id} />
-        <Link
-          href={`/posts/${post.id}/edit`}
-          className={primaryButton}
-        >
-          고치기
-        </Link>
+        <div className="flex items-center gap-2">
+          {from === "random" && (
+            // 매번 서버에서 새로 골라야 해서 Link(미리 불러오기) 대신 일반 링크
+            <a href={`/random?except=${post.id}`} className={secondaryButton}>
+              다른 글
+            </a>
+          )}
+          <Link href={`/posts/${post.id}/edit`} className={primaryButton}>
+            고치기
+          </Link>
+        </div>
       </BottomBar>
     </>
   );
