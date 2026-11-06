@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/readme/icon.png" width="96" height="96" alt="Nook 앱 아이콘">
+<img src="docs/readme/icon.svg" width="96" height="96" alt="Nook 앱 아이콘">
 
 <br><br>
 
