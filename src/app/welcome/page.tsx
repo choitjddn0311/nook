@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BottomBar } from "@/components/bottom-bar";
 import { LandingShot } from "@/components/landing-shot";
+import { LegalLinks } from "@/components/legal-document";
 import { NookLogo } from "@/components/nook-logo";
 import { primaryButton, secondaryButton } from "@/lib/button-styles";
+import { OPERATOR } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Nook",
@@ -21,13 +23,6 @@ const DIFFERENT = [
   ["이메일이 필요 없어요", "아이디와 비밀번호로 가입해요. 비밀번호를 잊으면 가입할 때 받은 복구 코드로 다시 정해요."],
   ["지난 글을 고치지 않아요", "그때의 글은 그대로 두고, 지금의 생각을 날짜와 함께 아래에 덧붙여요."],
   ["어디서나 같은 글이에요", "폰, 태블릿, PC 브라우저에서 바로 열고, 홈 화면에 앱처럼 설치할 수 있어요."],
-];
-
-// 준비되면 href를 채운다. 없는 항목은 링크 없이 '준비 중'으로 보인다.
-const FOOTER_LINKS: { label: string; href: string | null }[] = [
-  { label: "개인정보 처리방침", href: null },
-  { label: "이용약관", href: null },
-  { label: "사업자 정보", href: null },
 ];
 
 function Actions({ className = "" }: { className?: string }) {
@@ -197,21 +192,16 @@ export default function WelcomePage() {
       <footer className="mt-auto border-t border-border pt-8 pb-10 text-sm text-text-muted lg:flex lg:items-start lg:justify-between lg:gap-12">
         <div>
           <NookLogo className="h-4 w-auto text-text" />
+          <p className="mt-3">운영자 {OPERATOR.name}</p>
+          <p className="mt-1">
+            문의{" "}
+            <a href={`mailto:${OPERATOR.email}`} className="underline underline-offset-4">
+              {OPERATOR.email}
+            </a>
+          </p>
           <p className="mt-3">© 2026 Nook</p>
         </div>
-        <ul className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-6 lg:mt-0">
-          {FOOTER_LINKS.map(({ label, href }) => (
-            <li key={label}>
-              {href ? (
-                <Link href={href} className="inline-flex min-h-11 items-center text-text underline underline-offset-4 sm:min-h-0">
-                  {label}
-                </Link>
-              ) : (
-                <>{label} (준비 중)</>
-              )}
-            </li>
-          ))}
-        </ul>
+        <LegalLinks className="mt-4 lg:mt-0" />
       </footer>
     </div>
   );

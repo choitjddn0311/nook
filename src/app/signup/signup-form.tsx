@@ -82,6 +82,21 @@ export function SignupForm({ socialButtons }: { socialButtons: React.ReactNode }
           />
         </div>
 
+        <label className="flex cursor-pointer items-start gap-3 text-[15px] leading-relaxed text-text">
+          <input type="checkbox" name="agree" required className="mt-1 size-5 shrink-0 accent-(--accent)" />
+          <span>
+            만 14세 이상이며,{" "}
+            <a href="/terms" target="_blank" rel="noopener" className="underline underline-offset-4">
+              이용약관
+            </a>
+            에 동의하고{" "}
+            <a href="/privacy" target="_blank" rel="noopener" className="underline underline-offset-4">
+              개인정보 처리방침
+            </a>
+            (국외 이전 포함)을 확인했어요. (필수)
+          </span>
+        </label>
+
         <p id="signup-error" role="alert" className="min-h-6 text-sm font-medium text-text">
           {state.error}
         </p>

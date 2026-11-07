@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { DeleteAccount } from "@/components/delete-account";
+import { LegalLinks } from "@/components/legal-document";
 import { LogoutButton } from "@/components/logout-button";
 import { RegenerateRecoveryCode } from "@/components/regenerate-recovery-code";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
@@ -26,6 +27,7 @@ export default function MePage() {
         <AccountSettings />
       </Suspense>
       <LogoutButton className="mt-12 border-t border-border pt-4" />
+      <LegalLinks className="mt-2" />
     </div>
   );
 }

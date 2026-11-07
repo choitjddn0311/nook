@@ -2,6 +2,7 @@ import { primaryButton, secondaryButton } from "@/lib/button-styles";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BottomBar } from "@/components/bottom-bar";
+import { LegalLinks } from "@/components/legal-document";
 import { PastBanner } from "@/components/past-banner";
 import { PostList, PostListSkeleton } from "@/components/post-list";
 import { SearchPanel } from "@/components/search-panel";
@@ -43,6 +44,9 @@ export default function Home({ searchParams }: PageProps<"/">) {
           <PostList key={homeHref(filters)} filters={filters} />
         ))}
       </Suspense>
+
+      {/* 처리방침은 로그인 여부와 상관없이 첫 화면에서 찾을 수 있어야 한다 (작성지침) */}
+      <LegalLinks className="mt-8" />
 
       {/* 하단 고정: 폰에서 엄지가 닿는 곳 */}
       <BottomBar className="flex items-center justify-between gap-2">
