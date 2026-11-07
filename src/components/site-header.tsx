@@ -36,8 +36,10 @@ async function SignedInLinks() {
   return (
     <>
       {account.isAdmin && <AdminLink />}
-      <NavLink href="/past">지난 생각</NavLink>
-      <NavLink href="/me" label="마이페이지">
+      <NavLink href="/past" tour="past">
+        지난 생각
+      </NavLink>
+      <NavLink href="/me" label="마이페이지" tour="me">
         나
       </NavLink>
     </>

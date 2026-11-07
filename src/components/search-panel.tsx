@@ -44,6 +44,7 @@ export function SearchPanel({ filters }: { filters: HomeFilters }) {
         <button
           ref={buttonRef}
           type="button"
+          data-tour="search"
           onClick={() => {
             setText(filters.q ?? "");
             setOpen(true);

@@ -10,7 +10,7 @@ export async function getCurrentUserId(): Promise<string | null> {
 }
 
 export type AccountStatus = "pending" | "approved" | "rejected";
-export type Account = { userId: string; status: AccountStatus; isAdmin: boolean; hasPassword: boolean };
+export type Account = { userId: string; status: AccountStatus; isAdmin: boolean; hasPassword: boolean; onboarded: boolean };
 
 // 로그인한 사람의 승인 상태·관리자 여부 (17단계 profiles). 로그인 안 했으면 null.
 // 프로필을 못 읽으면 승인 대기로 본다 (데이터는 DB의 RLS가 어차피 막는다).
@@ -20,11 +20,13 @@ export async function getAccount(): Promise<Account | null> {
   const userId = data?.claims?.sub;
   if (typeof userId !== "string") return null;
 
-  const { data: profile } = await supabase.from("profiles").select("status, is_admin").eq("id", userId).maybeSingle();
+  const { data: profile } = await supabase.from("profiles").select("status, is_admin, onboarded_at").eq("id", userId).maybeSingle();
   return {
     userId,
     status: (profile?.status as AccountStatus | undefined) ?? "pending",
     isAdmin: profile?.is_admin ?? false,
+    // 프로필을 못 읽으면 안내를 띄우지 않는다
+    onboarded: profile ? profile.onboarded_at !== null : true,
     // 소셜 로그인 계정은 비밀번호도 복구 코드도 없다
     hasPassword: data?.claims?.app_metadata?.provider === "email",
   };
