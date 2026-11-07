@@ -9,7 +9,7 @@ import { signup, type SignupState } from "./actions";
 
 const initialState: SignupState = { error: null, username: "", code: null };
 
-export function SignupForm() {
+export function SignupForm({ socialButtons }: { socialButtons: React.ReactNode }) {
   const [state, formAction, pending] = useActionState(signup, initialState);
 
   // 가입 완료: 복구 코드를 보여 주고 나서 승인 대기 화면으로
@@ -21,8 +21,9 @@ export function SignupForm() {
   return (
     <>
       <h1 className="text-2xl leading-tight font-semibold tracking-[-0.02em] text-text">가입하기</h1>
-      <p className="mt-2 mb-8 text-base leading-relaxed text-text-muted">이메일 없이 아이디만 있으면 돼요.</p>
+      <p className="mt-2 mb-8 text-base leading-relaxed text-text-muted">Google로, 또는 이메일 없이 아이디로 가입해요.</p>
 
+      {socialButtons}
       <form action={formAction} className="flex flex-col gap-5" noValidate>
         <div className="flex flex-col gap-2">
           <label htmlFor="username" className={labelClass}>
