@@ -2,7 +2,6 @@ import { primaryButton, secondaryButton } from "@/lib/button-styles";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BottomBar } from "@/components/bottom-bar";
-import { LegalLinks } from "@/components/legal-document";
 import { PastBanner } from "@/components/past-banner";
 import { PostList, PostListSkeleton } from "@/components/post-list";
 import { SearchPanel } from "@/components/search-panel";
@@ -45,8 +44,12 @@ export default function Home({ searchParams }: PageProps<"/">) {
         ))}
       </Suspense>
 
-      {/* 처리방침은 로그인 여부와 상관없이 첫 화면에서 찾을 수 있어야 한다 (작성지침) */}
-      <LegalLinks className="mt-8" />
+      {/* 처리방침은 로그인 여부와 상관없이 첫 화면에서 찾을 수 있어야 한다 (작성지침). 이용약관은 마이페이지에 */}
+      <p className="mt-8 text-sm">
+        <Link href="/privacy" className="inline-flex min-h-11 items-center font-semibold text-text">
+          개인정보 처리방침
+        </Link>
+      </p>
 
       {/* 하단 고정: 폰에서 엄지가 닿는 곳 */}
       <BottomBar className="flex items-center justify-between gap-2">
