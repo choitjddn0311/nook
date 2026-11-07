@@ -16,3 +16,9 @@ export async function regenerateRecoveryCode(): Promise<RegenerateState> {
   if (error || !data) return { code: null, error: "만들지 못했어요. 잠시 후 다시 해 주세요." };
   return { code: data, error: null };
 }
+
+// 사용법 안내를 봤다고 기록한다 (본인 것만)
+export async function completeOnboarding() {
+  const supabase = await createClient();
+  await supabase.rpc("complete_onboarding");
+}

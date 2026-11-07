@@ -6,7 +6,15 @@ import { PastBanner } from "@/components/past-banner";
 import { PostList, PostListSkeleton } from "@/components/post-list";
 import { SearchPanel } from "@/components/search-panel";
 import { TagFilter } from "@/components/tag-filter";
+import { Tutorial } from "@/components/tutorial";
+import { getAccount } from "@/lib/account";
 import { homeHref, parseHomeFilters } from "@/lib/home-filters";
+
+// 승인 후 처음 들어온 사람에게만 사용법 안내를 띄운다
+async function FirstVisitTutorial() {
+  const account = await getAccount();
+  return account?.status === "approved" && !account.onboarded ? <Tutorial /> : null;
+}
 
 export default function Home({ searchParams }: PageProps<"/">) {
   // ?q=&tag=&fav= → 거르기 상태. 주소 값은 요청 때만 알 수 있으므로 Suspense 안에서 읽는다 (Cache Components)
@@ -14,6 +22,10 @@ export default function Home({ searchParams }: PageProps<"/">) {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <FirstVisitTutorial />
+      </Suspense>
+
       {/* 지난 오늘 쓴 글이 있는 날에만 보이는 한 줄 안내 */}
       <Suspense fallback={null}>
         <PastBanner />
@@ -41,10 +53,10 @@ export default function Home({ searchParams }: PageProps<"/">) {
           ))}
         </Suspense>
         {/* 15단계 랜덤 생각: 내 글 중 하나를 무작위로 (매번 서버에서 골라야 해서 일반 링크) */}
-        <a href="/random" className={secondaryButton}>
+        <a href="/random" data-tour="random" className={secondaryButton}>
           아무 글 보기
         </a>
-        <Link href="/write" className={primaryButton}>
+        <Link href="/write" data-tour="write" className={primaryButton}>
           새 글 쓰기
         </Link>
       </BottomBar>
