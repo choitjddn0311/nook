@@ -4,13 +4,14 @@ import type { Database } from "@/lib/database.types";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 
 // 로그인하지 않아도 열 수 있는 경로
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = ["/login", "/signup", "/recover", "/welcome"];
 // 승인 전(가입 신청 중·거절됨)인 사람이 보는 화면
 const WAITING_PATH = "/waiting";
 
 // 모든 요청 전에 실행된다 (src/proxy.ts).
 // 1) 로그인 토큰이 만료돼 가면 새로 발급해서 쿠키에 다시 쓴다 → 로그인이 계속 유지된다.
-// 2) 로그인 안 한 사람은 /login 으로, 이미 로그인한 사람이 /login 에 오면 / 로 보낸다.
+// 2) 로그인 안 한 사람이 / 에 오면 주소는 그대로 두고 소개 화면(/welcome)을 보여 준다. 다른 화면에 오면 / 로 보낸다.
+//    이미 로그인한 사람이 로그인·가입 화면에 오면 / 로 보낸다.
 // 3) 로그인했지만 아직 승인되지 않은 사람은 /waiting 으로 보낸다 (17단계 승인 제도).
 //    여기서는 화면 안내만 한다. 진짜 잠금은 DB의 RLS('승인된 사용자만')가 한다.
 export async function updateSession(request: NextRequest) {
@@ -39,7 +40,8 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-  if (!isLoggedIn && !isPublic) return redirectKeepingCookies(request, response, "/login");
+  if (!isLoggedIn && pathname === "/") return rewriteKeepingCookies(request, response, "/welcome");
+  if (!isLoggedIn && !isPublic) return redirectKeepingCookies(request, response, "/");
   if (isLoggedIn && isPublic) return redirectKeepingCookies(request, response, "/");
 
   if (isLoggedIn) {
@@ -58,16 +60,29 @@ export async function updateSession(request: NextRequest) {
   return response;
 }
 
+// 주소창은 그대로 두고 다른 화면을 보여 줄 때도 쿠키·헤더를 옮겨 담는다.
+function rewriteKeepingCookies(request: NextRequest, from: NextResponse, pathname: string) {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  const rewrite = NextResponse.rewrite(url);
+  copyAuthState(from, rewrite);
+  return rewrite;
+}
+
 // 다른 주소로 보낼 때도 방금 갱신한 쿠키·헤더를 옮겨 담아야 로그인이 풀리지 않는다.
 function redirectKeepingCookies(request: NextRequest, from: NextResponse, pathname: string) {
   const url = request.nextUrl.clone();
   url.pathname = pathname;
   url.search = "";
   const redirect = NextResponse.redirect(url);
-  from.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+  copyAuthState(from, redirect);
+  return redirect;
+}
+
+function copyAuthState(from: NextResponse, to: NextResponse) {
+  from.cookies.getAll().forEach((cookie) => to.cookies.set(cookie));
   for (const header of ["cache-control", "expires", "pragma"]) {
     const value = from.headers.get(header);
-    if (value) redirect.headers.set(header, value);
+    if (value) to.headers.set(header, value);
   }
-  return redirect;
 }

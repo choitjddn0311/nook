@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LogoutButton } from "@/components/logout-button";
+import { RegenerateRecoveryCode } from "@/components/regenerate-recovery-code";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { getAccount } from "@/lib/account";
 
@@ -45,6 +46,7 @@ async function WaitingMessage() {
         <br />
         승인되면 이 화면을 새로 고치거나 다시 열었을 때 바로 시작할 수 있어요.
       </p>
+      {account?.hasPassword && <RegenerateRecoveryCode className="mt-8" />}
     </>
   );
 }
