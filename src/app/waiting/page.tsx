@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { DeleteAccount } from "@/components/delete-account";
 import { LogoutButton } from "@/components/logout-button";
 import { RegenerateRecoveryCode } from "@/components/regenerate-recovery-code";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
@@ -37,6 +38,7 @@ async function WaitingMessage() {
       <p className="mt-3 text-base leading-relaxed text-text-muted">
         지금은 이 계정으로 Nook을 쓸 수 없어요. 잘못된 것 같다면 관리자에게 알려 주세요.
       </p>
+      {account && <DeleteOption hasPassword={account.hasPassword} />}
     </>
   ) : (
     <>
@@ -47,6 +49,16 @@ async function WaitingMessage() {
         승인되면 이 화면을 새로 고치거나 다시 열었을 때 바로 시작할 수 있어요.
       </p>
       {account?.hasPassword && <RegenerateRecoveryCode className="mt-8" />}
+      {account && <DeleteOption hasPassword={account.hasPassword} />}
     </>
+  );
+}
+
+// 승인 전이거나 거절된 계정도 스스로 지울 수 있어야 한다
+function DeleteOption({ hasPassword }: { hasPassword: boolean }) {
+  return (
+    <div className="mt-2">
+      <DeleteAccount hasPassword={hasPassword} canExport={false} />
+    </div>
   );
 }

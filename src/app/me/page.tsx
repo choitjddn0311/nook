@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { ChangePasswordForm } from "@/components/change-password-form";
+import { DeleteAccount } from "@/components/delete-account";
 import { LogoutButton } from "@/components/logout-button";
+import { RegenerateRecoveryCode } from "@/components/regenerate-recovery-code";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { ActivityCalendar, MonthlyBars, StatNumbers, TopTags } from "@/components/thinking-stats";
+import { getAccount } from "@/lib/account";
 import { computeStats, seoulDayKey } from "@/lib/stats";
 import { createClient } from "@/lib/supabase/server";
 import { accountName } from "@/lib/username";
 
 export const metadata: Metadata = { title: "나 · Nook" };
 
-// 마이페이지: 나(계정) → 생각 통계 → 로그아웃
+// 마이페이지: 나(계정) → 생각 통계 → 계정 관리 → 로그아웃
 export default function MePage() {
   return (
     <div className="flex flex-1 flex-col pt-4 pb-10">
@@ -18,8 +22,52 @@ export default function MePage() {
       <Suspense fallback={<MeSkeleton />}>
         <MeContent />
       </Suspense>
+      <Suspense fallback={null}>
+        <AccountSettings />
+      </Suspense>
       <LogoutButton className="mt-12 border-t border-border pt-4" />
     </div>
+  );
+}
+
+// 계정 관리 (20단계). 비밀번호·복구 코드는 비밀번호가 있는 계정에만. 소셜 계정은 없다.
+async function AccountSettings() {
+  const account = await getAccount();
+  if (!account) return null;
+  return (
+    <section aria-labelledby="me-settings" className="mt-12">
+      <h2 id="me-settings" className="text-lg leading-snug font-semibold tracking-[-0.01em] text-text">
+        계정 관리
+      </h2>
+      <div className="mt-2 divide-y divide-border">
+        {account.hasPassword && <ChangePasswordForm />}
+        {account.hasPassword && (
+          <div className="py-2">
+            <p className="text-[15px] leading-relaxed text-text-muted">
+              비밀번호를 잊었을 때 쓰는 코드예요. 새로 만들면 이전 코드는 쓸 수 없어요.
+            </p>
+            <RegenerateRecoveryCode className="mt-1" />
+          </div>
+        )}
+        <div className="py-3">
+          <p className="text-base text-text">내 글 내보내기</p>
+          <p className="mt-1 text-[15px] leading-relaxed text-text-muted">글과 덧붙인 생각을 모두 파일로 받아요.</p>
+          <p className="mt-1 flex gap-4 text-base">
+            <a href="/me/export?format=md" download className="inline-flex min-h-11 items-center text-text underline underline-offset-4">
+              Markdown으로 받기
+            </a>
+            <a href="/me/export?format=json" download className="inline-flex min-h-11 items-center text-text underline underline-offset-4">
+              JSON으로 받기
+            </a>
+          </p>
+        </div>
+        {!account.isAdmin && (
+          <div className="py-2">
+            <DeleteAccount hasPassword={account.hasPassword} canExport />
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 

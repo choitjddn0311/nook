@@ -114,6 +114,8 @@ export type Database = {
       // 18단계: 복구 코드 (supabase/migrations/20261107064302_add_account_recovery.sql)
       // 19.5단계: 사용법 안내를 봤다는 기록 (supabase/migrations/20261107074248_add_onboarding.sql)
       complete_onboarding: { Args: Record<PropertyKey, never>; Returns: undefined };
+      // 20단계: 탈퇴 (supabase/migrations/20261107075800_add_delete_my_account.sql)
+      delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       create_recovery_code: { Args: Record<PropertyKey, never>; Returns: string };
       reset_password_with_code: { Args: { identifier: string; code: string; new_password: string }; Returns: string | null };
     };
