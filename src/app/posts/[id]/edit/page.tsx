@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { PostEditor } from "@/components/post-editor";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
+import { getCurrentUserId } from "@/lib/account";
 import { getPost } from "@/lib/posts";
 
 export const metadata: Metadata = { title: "글 고치기 · Nook" };
@@ -21,12 +22,13 @@ export default function EditPostPage({ params }: PageProps<"/posts/[id]/edit">) 
 }
 
 async function EditForm({ id }: { id: string }) {
-  const post = await getPost(id);
-  if (!post) notFound();
+  const [post, userId] = await Promise.all([getPost(id), getCurrentUserId()]);
+  if (!post || !userId) notFound();
 
   return (
     <PostEditor
       initial={{ id: post.id, title: post.title ?? "", content: post.content, tags: post.tags, format: post.format, updatedAt: post.updated_at }}
+      userId={userId}
     />
   );
 }

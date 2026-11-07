@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { logout } from "@/app/auth-actions";
+import { LogoutButton } from "@/components/logout-button";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { ActivityCalendar, MonthlyBars, StatNumbers, TopTags } from "@/components/thinking-stats";
-import { quietButton } from "@/lib/button-styles";
 import { computeStats, seoulDayKey } from "@/lib/stats";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,11 +17,7 @@ export default function MePage() {
       <Suspense fallback={<MeSkeleton />}>
         <MeContent />
       </Suspense>
-      <form action={logout} className="mt-12 border-t border-border pt-4">
-        <button type="submit" className={`${quietButton} -ml-3`}>
-          로그아웃
-        </button>
-      </form>
+      <LogoutButton className="mt-12 border-t border-border pt-4" />
     </div>
   );
 }

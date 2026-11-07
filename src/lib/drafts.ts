@@ -5,9 +5,44 @@ import type { PostValue } from "@/lib/post-form";
 
 export type Draft = PostValue & { savedAt: number; newId?: string };
 
-const key = (postId: string | null) => `nook-draft:${postId ?? "new"}`;
+// 임시본은 계정마다 따로 둔다: nook-draft:<사용자 id>:<글 id | new>
+// 같은 기기에서 다른 사람이 로그인해도 남의 쓰던 글이 보이지 않게 한다.
+// 사용자를 모르면(owner 없음) 읽지도 쓰지도 않는다.
+const PREFIX = "nook-draft:";
+let owner: string | null = null;
+const key = (postId: string | null) => `${PREFIX}${owner}:${postId ?? "new"}`;
+
+// 편집기가 열릴 때 지금 로그인한 사람으로 정한다.
+// 예전 형식(nook-draft:<글 id>, 사용자 구분 없음)이 남아 있으면 이 사람의 것으로 옮긴다
+// (사용자 구분 전에는 혼자 쓰던 앱이었으므로).
+export function setDraftOwner(userId: string) {
+  owner = userId;
+  try {
+    for (const k of Object.keys(localStorage)) {
+      if (!k.startsWith(PREFIX)) continue;
+      const rest = k.slice(PREFIX.length);
+      if (rest.includes(":")) continue; // 이미 새 형식
+      const value = localStorage.getItem(k);
+      if (value !== null && localStorage.getItem(key(rest)) === null) localStorage.setItem(key(rest), value);
+      localStorage.removeItem(k);
+    }
+  } catch {
+    // 무시
+  }
+}
+
+// 로그아웃할 때: 이 기기에 남은 임시본을 모두 지운다 (다음 사람이 볼 수 없게)
+export function clearAllDrafts() {
+  owner = null;
+  try {
+    for (const k of Object.keys(localStorage)) if (k.startsWith(PREFIX)) localStorage.removeItem(k);
+  } catch {
+    // 무시
+  }
+}
 
 export function readDraft(postId: string | null): Draft | null {
+  if (!owner) return null;
   try {
     const raw = localStorage.getItem(key(postId));
     if (!raw) return null;
@@ -28,6 +63,7 @@ export function readDraft(postId: string | null): Draft | null {
 
 // newId: 아직 DB에 없는 새 글에 미리 정해 둔 id. 같은 임시본을 두 번 저장해도 글이 하나만 생기게 한다.
 export function writeDraft(postId: string | null, value: PostValue, newId?: string | null) {
+  if (!owner) return;
   try {
     localStorage.setItem(key(postId), JSON.stringify({ ...value, savedAt: Date.now(), newId: newId ?? undefined }));
   } catch {
@@ -36,6 +72,7 @@ export function writeDraft(postId: string | null, value: PostValue, newId?: stri
 }
 
 export function clearDraft(postId: string | null) {
+  if (!owner) return;
   try {
     localStorage.removeItem(key(postId));
   } catch {

@@ -14,7 +14,7 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     // 어떤 칸이 틀렸는지 알려 주지 않는다(계정이 있는지 추측하지 못하게).
@@ -25,5 +25,7 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
     return { error: message, email };
   }
 
-  redirect("/");
+  // 아직 승인되지 않은 계정은 곧장 기다리는 화면으로 (주소창도 /waiting 이 되도록 여기서 정한다)
+  const { data: profile } = await supabase.from("profiles").select("status").eq("id", data.user.id).maybeSingle();
+  redirect(profile?.status === "approved" ? "/" : "/waiting");
 }
