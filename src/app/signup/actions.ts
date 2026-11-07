@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { CONSENT_VERSION } from "@/lib/legal";
 import { createClient } from "@/lib/supabase/server";
 import { loginToEmail, usernameError } from "@/lib/username";
 
@@ -16,9 +17,15 @@ export async function signup(_prev: SignupState, formData: FormData): Promise<Si
   if (invalid) return fail(invalid);
   if (password.length < 8) return fail("비밀번호는 8자 이상이어야 해요.");
   if (password !== confirm) return fail("비밀번호가 서로 달라요.");
+  if (formData.get("agree") !== "on") return fail("필수 항목을 확인하고 체크해 주세요.");
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({ email: loginToEmail(username), password });
+  const { error } = await supabase.auth.signUp({
+    email: loginToEmail(username),
+    password,
+    // 언제 어떤 버전에 동의했는지 계정에 남긴다
+    options: { data: { consent_version: CONSENT_VERSION, consented_at: new Date().toISOString() } },
+  });
 
   if (error) {
     if (error.code === "signup_disabled") return fail("지금은 가입 준비 중이에요. 조금만 기다려 주세요.");

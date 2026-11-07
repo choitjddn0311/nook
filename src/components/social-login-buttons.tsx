@@ -1,4 +1,5 @@
 import { signInWithProvider } from "@/app/auth/actions";
+import Link from "next/link";
 import { secondaryButton } from "@/lib/button-styles";
 
 // 로그인·가입 화면의 소셜 로그인 버튼. 지금은 Google만 (카카오는 나중에).
@@ -17,6 +18,17 @@ export function SocialLoginButtons() {
           Google로 계속하기
         </button>
       </form>
+      <p className="mt-1 text-sm leading-relaxed text-text-muted">
+        Google로 처음 계속하면 만 14세 이상이며{" "}
+        <Link href="/terms" target="_blank" className="underline underline-offset-4">
+          이용약관
+        </Link>
+        에 동의하고{" "}
+        <Link href="/privacy" target="_blank" className="underline underline-offset-4">
+          개인정보 처리방침
+        </Link>
+        을 확인한 것으로 봐요.
+      </p>
       <div className="my-4 flex items-center gap-3 text-sm text-text-muted" aria-hidden="true">
         <span className="h-px flex-1 bg-border" />
         또는
