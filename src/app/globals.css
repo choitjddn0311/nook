@@ -385,23 +385,6 @@ section[aria-label="미리보기"] .markdown pre {
   }
 }
 
-/* 랜딩 첫 화면의 한 번뿐인 움직임: 구석에서 바깥으로 펼쳐진다. 튀지 않고 부드럽게 멈춘다 */
-@media (prefers-reduced-motion: no-preference) {
-  .landing-corner {
-    animation: nook-corner-open 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-}
-@keyframes nook-corner-open {
-  from {
-    opacity: 0;
-    clip-path: inset(55% 45% -4px -4px);
-  }
-  to {
-    opacity: 1;
-    clip-path: inset(-4px -4px -4px -4px);
-  }
-}
-
 /* 랜딩만 넓은 화면에서 폭을 넓힌다. Next는 지나온 화면을 display:none으로 숨겨 두므로, 숨겨진 랜딩에는 반응하지 않게 한다 */
 @media (min-width: 1024px) {
   body:has(.landing:not([style*="display: none"])) > header,

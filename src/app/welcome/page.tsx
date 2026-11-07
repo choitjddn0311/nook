@@ -12,7 +12,6 @@ export const metadata: Metadata = {
 
 // 로그인 전 첫 화면(랜딩). 주소는 / 이고, proxy가 로그인 안 한 사람만 이 화면으로 돌려 보여 준다.
 // 말하려는 것: 일기는 쓰고 나면 다시 안 보게 된다. Nook은 짧게 정리한 생각을 다시 꺼내 준다.
-// 기억에 남길 한 가지는 앱 아이콘의 ㄴ자 구석 선이다. 나머지는 조용하게 둔다.
 // 넓은 화면(lg 이상)에서는 .landing이 헤더와 본문 폭을 넓힌다 (globals.css).
 
 const ABSENT = ["피드", "좋아요", "팔로워", "알림", "광고"];
@@ -69,19 +68,13 @@ export default function WelcomePage() {
           <Actions className="mt-7 hidden sm:flex lg:mt-9" />
         </div>
 
-        <div className="landing-corner relative mt-12 pb-6 pl-6 sm:mt-16 sm:pb-9 sm:pl-9 lg:mt-0">
-          {/* 앱 아이콘의 ㄴ자 구석: 세로 막대, 곡선, 가로 막대. 끝은 둥글게 (둥근 테두리는 Chrome에서 끝에 흔적이 남아 쓰지 않는다) */}
-          <span aria-hidden="true" className="absolute top-0 bottom-10 left-0 w-[3px] rounded-t-full bg-text" />
-          <svg aria-hidden="true" viewBox="0 0 40 40" className="absolute bottom-0 left-0 size-10 text-text">
-            <path d="M1.5 0 A 37 37 0 0 0 38.5 38.5 H40" fill="none" stroke="currentColor" strokeWidth="3" />
-          </svg>
-          <span aria-hidden="true" className="absolute right-0 bottom-0 left-10 h-[3px] rounded-r-full bg-text" />
+        <div className="mt-12 sm:mt-16 lg:mt-0">
           <LandingShot
             name="home"
             alt="Nook 홈 화면. 맨 위에 '지난 오늘 쓴 글이 3개 있어요' 안내가 있고, 그 아래로 글 목록이 보입니다."
             sizes="(min-width: 640px) 320px, 75vw"
             eager
-            className="w-[78%] max-w-80 lg:w-full lg:max-w-72"
+            className="w-[78%] max-w-80 lg:ml-auto lg:w-full"
           />
         </div>
       </section>
