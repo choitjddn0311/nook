@@ -7,12 +7,13 @@ import { useEffect, useState } from "react";
 import { BottomBar } from "@/components/bottom-bar";
 import { TagInput } from "@/components/tag-input";
 import { createAutosaver, type SaveStatus } from "@/lib/autosaver";
-import { clearDraft, readDraft, sameValue } from "@/lib/drafts";
+import { clearDraft, readDraft, sameValue, setDraftOwner } from "@/lib/drafts";
 import type { PostFormat, PostValue } from "@/lib/post-form";
 import { formatTextStats } from "@/lib/text-stats";
 
 type Props = {
   initial: PostValue & { id: string | null; updatedAt: string | null };
+  userId: string; // 기기 임시본을 계정마다 나누는 데 쓴다
 };
 
 // Markdown 미리보기는 Markdown으로 쓸 때만 내려받는다 (일반 글만 쓰면 이 코드를 받지 않음)
@@ -50,7 +51,7 @@ const STATUS_TEXT: Record<SaveStatus, string> = {
 // 글쓰기·고치기 화면이 함께 쓰는 에디터. 자동 저장된다(저장 버튼 없음).
 // 칸 테두리·배경·막대 없이 깨끗한 종이처럼 둔다 (Apple 메모처럼).
 // 지금 쓰는 칸은 깜빡이는 커서(본문색)로 보인다 — 글자 입력칸에서는 커서가 포커스 표시 역할을 한다(WCAG 2.4.7).
-export function PostEditor({ initial }: Props) {
+export function PostEditor({ initial, userId }: Props) {
   const router = useRouter();
   const [value, setValue] = useState<PostValue>({
     title: initial.title,
@@ -90,6 +91,7 @@ export function PostEditor({ initial }: Props) {
 
   // 이 기기에 DB보다 새 임시본이 있으면 이어서 불러온다 (인터넷이 끊겼을 때 쓴 내용 등)
   useEffect(() => {
+    setDraftOwner(userId);
     // 이 글이 '새 글' 화면에서 만들어졌는데 그때의 임시본이 남아 있다면 정리 (이미 이 글로 저장됨)
     if (initial.id && readDraft(null)?.newId === initial.id) clearDraft(null);
 
@@ -115,7 +117,7 @@ export function PostEditor({ initial }: Props) {
     saver.adoptNewId(draft.newId);
     saver.update(restored);
     void saver.flush();
-  }, [initial, saver]);
+  }, [initial, saver, userId]);
 
   // 인터넷이 돌아오면 저장, 다른 앱으로 넘어가거나 창을 닫으면 바로 저장, 화면을 떠나면 마무리
   useEffect(() => {

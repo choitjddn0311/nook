@@ -80,9 +80,37 @@ export type Database = {
           },
         ];
       };
+      // 17단계: 계정마다 승인 상태·관리자 여부 (supabase/migrations/20261107062127_add_profiles_approval.sql)
+      // 본인 것을 읽기만 할 수 있다. 바꾸는 건 관리자 함수(admin_set_status)만.
+      profiles: {
+        Row: {
+          id: string;
+          status: "pending" | "approved" | "rejected";
+          is_admin: boolean;
+          created_at: string;
+          approved_at: string | null;
+        };
+        Insert: { [_ in never]: never };
+        Update: { [_ in never]: never };
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      is_approved: { Args: Record<PropertyKey, never>; Returns: boolean };
+      admin_list_signups: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          id: string;
+          email: string | null;
+          provider: string;
+          status: "pending" | "approved" | "rejected";
+          created_at: string;
+          approved_at: string | null;
+        }[];
+      };
+      admin_set_status: { Args: { target: string; new_status: "approved" | "rejected" }; Returns: undefined };
+    };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };
@@ -93,3 +121,4 @@ export type Post = Database["public"]["Tables"]["posts"]["Row"];
 export type PostInsert = Database["public"]["Tables"]["posts"]["Insert"];
 export type PostUpdate = Database["public"]["Tables"]["posts"]["Update"];
 export type PostNote = Database["public"]["Tables"]["post_notes"]["Row"];
+export type Signup = Database["public"]["Functions"]["admin_list_signups"]["Returns"][number];

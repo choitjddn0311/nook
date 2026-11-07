@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { NavLink } from "@/components/nav-link";
 import { NookLogo } from "@/components/nook-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getAccount } from "@/lib/account";
 import { createClient } from "@/lib/supabase/server";
 
 export function SiteHeader() {
@@ -26,18 +27,31 @@ export function SiteHeader() {
   );
 }
 
-// 로그인했을 때만 보이는 헤더 링크: 지난 생각 · 나(마이페이지). 로그아웃은 마이페이지 맨 아래로 옮겼다.
+// 승인된 계정에만 보이는 헤더 링크: (관리) · 지난 생각 · 나(마이페이지). 로그아웃은 마이페이지 맨 아래.
+// 승인 대기 중인 계정은 갈 수 있는 곳이 없으므로 링크를 보여 주지 않는다.
 async function SignedInLinks() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  if (!data?.claims) return null;
+  const account = await getAccount();
+  if (account?.status !== "approved") return null;
 
   return (
     <>
+      {account.isAdmin && <AdminLink />}
       <NavLink href="/past">지난 생각</NavLink>
       <NavLink href="/me" label="마이페이지">
         나
       </NavLink>
     </>
+  );
+}
+
+// 관리자에게만: '관리' 링크 + 승인 대기 인원 (있을 때만 숫자)
+async function AdminLink() {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("admin_list_signups");
+  const pending = (data ?? []).filter((s) => s.status === "pending").length;
+  return (
+    <NavLink href="/admin" label={pending > 0 ? `관리, 승인 대기 ${pending}명` : "관리"}>
+      관리{pending > 0 && <span className="ml-1 tabular-nums">{pending}</span>}
+    </NavLink>
   );
 }
