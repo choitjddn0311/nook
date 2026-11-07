@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { setSignupStatus, type StatusResult } from "@/app/admin/actions";
 import { primaryButton, quietButton, secondaryButton } from "@/lib/button-styles";
 import type { Signup } from "@/lib/database.types";
+import { accountName, isUsernameAccount } from "@/lib/username";
 
 const PROVIDER: Record<string, string> = { email: "이메일", google: "Google", kakao: "카카오" };
 const STATUS: Record<Signup["status"], string> = { pending: "대기", approved: "승인됨", rejected: "거절됨" };
@@ -18,14 +19,15 @@ const dateFormat = new Intl.DateTimeFormat("ko-KR", {
 // 관리자 화면의 가입 계정 한 줄: 이메일 · 가입 방식 · 신청일 + 승인/거절
 export function SignupRow({ signup }: { signup: Signup }) {
   const [state, action, pending] = useActionState<StatusResult, FormData>(setSignupStatus, { error: null });
-  const label = signup.email ?? "(이메일 없음)";
+  const label = accountName(signup.email) ?? "(이메일 없음)";
+  const method = isUsernameAccount(signup.email) ? "아이디" : (PROVIDER[signup.provider] ?? signup.provider);
 
   return (
     <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <p className="truncate text-base text-text">{label}</p>
         <p className="mt-0.5 text-sm text-text-muted">
-          {PROVIDER[signup.provider] ?? signup.provider} · {dateFormat.format(new Date(signup.created_at))} 신청
+          {method} · {dateFormat.format(new Date(signup.created_at))} 신청
           {signup.status !== "pending" && <> · {STATUS[signup.status]}</>}
         </p>
         {state.error && (

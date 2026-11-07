@@ -1,0 +1,112 @@
+"use client";
+
+import Link from "next/link";
+import { useActionState } from "react";
+import { RecoveryCodeNotice } from "@/components/recovery-code-notice";
+import { primaryButton } from "@/lib/button-styles";
+import { fieldClass, labelClass } from "@/lib/form-styles";
+import { recover, type RecoverState } from "./actions";
+
+const initialState: RecoverState = { error: null, login: "", code: null };
+
+export function RecoverForm() {
+  const [state, formAction, pending] = useActionState(recover, initialState);
+
+  // 성공: 쓴 코드는 무효가 되고 새 코드가 나온다
+  if (state.code) return <RecoveryCodeNotice code={state.code} nextHref="/login" nextLabel="로그인하러 가기" />;
+
+  const invalid = state.error ? true : undefined;
+  const describedBy = state.error ? "recover-error" : undefined;
+
+  return (
+    <>
+      <h1 className="text-2xl leading-tight font-semibold tracking-[-0.02em] text-text">비밀번호 다시 정하기</h1>
+      <p className="mt-2 mb-8 text-base leading-relaxed text-text-muted">가입할 때 저장한 복구 코드가 필요해요.</p>
+
+      <form action={formAction} className="flex flex-col gap-5" noValidate>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="login" className={labelClass}>
+            아이디 또는 이메일
+          </label>
+          <input
+            id="login"
+            name="login"
+            type="text"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            required
+            defaultValue={state.login}
+            aria-invalid={invalid}
+            aria-describedby={describedBy}
+            className={fieldClass}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="code" className={labelClass}>
+            복구 코드
+          </label>
+          <input
+            id="code"
+            name="code"
+            type="text"
+            autoComplete="one-time-code"
+            autoCapitalize="characters"
+            spellCheck={false}
+            required
+            aria-invalid={invalid}
+            aria-describedby={describedBy}
+            className={fieldClass}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="password" className={labelClass}>
+            새 비밀번호
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            aria-invalid={invalid}
+            aria-describedby={describedBy}
+            className={fieldClass}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="confirm" className={labelClass}>
+            새 비밀번호 확인
+          </label>
+          <input
+            id="confirm"
+            name="confirm"
+            type="password"
+            autoComplete="new-password"
+            required
+            aria-invalid={invalid}
+            aria-describedby={describedBy}
+            className={fieldClass}
+          />
+        </div>
+
+        <p id="recover-error" role="alert" className="min-h-6 text-sm font-medium text-text">
+          {state.error}
+        </p>
+
+        <button type="submit" disabled={pending} className={`${primaryButton} w-full`}>
+          {pending ? "바꾸는 중…" : "비밀번호 바꾸기"}
+        </button>
+      </form>
+
+      <p className="mt-6 text-[15px] text-text-muted">
+        <Link href="/login" className="text-text underline underline-offset-4">
+          로그인으로 돌아가기
+        </Link>
+      </p>
+    </>
+  );
+}

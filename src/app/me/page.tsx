@@ -5,6 +5,7 @@ import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { ActivityCalendar, MonthlyBars, StatNumbers, TopTags } from "@/components/thinking-stats";
 import { computeStats, seoulDayKey } from "@/lib/stats";
 import { createClient } from "@/lib/supabase/server";
+import { accountName } from "@/lib/username";
 
 export const metadata: Metadata = { title: "나 · Nook" };
 
@@ -44,7 +45,7 @@ async function MeContent() {
         <h2 id="me-account" className="sr-only">
           내 계정
         </h2>
-        <p className="text-base text-text-muted">{user?.email}</p>
+        <p className="text-base text-text-muted">{accountName(user?.email)}</p>
         {joined && (
           <p className="mt-1 text-[15px] text-text-muted">
             {jy}년 {jm}월 {jd}일에 시작해서, Nook과 함께한 지 <span className="font-semibold text-text">{daysTogether}일째</span>예요.

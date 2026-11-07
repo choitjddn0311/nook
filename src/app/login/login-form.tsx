@@ -1,33 +1,31 @@
 "use client";
 
-import { primaryButton } from "@/lib/button-styles";
+import Link from "next/link";
 import { useActionState } from "react";
-import { login, type LoginState } from "./actions";
+import { primaryButton } from "@/lib/button-styles";
+import { fieldClass, labelClass } from "@/lib/form-styles";
+import { loginAction, type LoginState } from "./actions";
 
-const initialState: LoginState = { error: null, email: "" };
-
-const fieldClass =
-  "h-11 w-full rounded-lg bg-surface px-4 text-base text-text placeholder:text-text-muted transition-shadow focus-visible:outline-none focus:shadow-[inset_0_0_0_2px_var(--accent)]";
+const initialState: LoginState = { error: null, login: "" };
 
 export function LoginForm() {
-  const [state, formAction, pending] = useActionState(login, initialState);
+  const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   return (
     <form action={formAction} className="flex flex-col gap-5" noValidate>
       <div className="flex flex-col gap-2">
-        <label htmlFor="email" className="text-sm font-medium text-text">
-          이메일
+        <label htmlFor="login" className={labelClass}>
+          아이디 또는 이메일
         </label>
         <input
-          id="email"
-          name="email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
+          id="login"
+          name="login"
+          type="text"
+          autoComplete="username"
           autoCapitalize="none"
           spellCheck={false}
           required
-          defaultValue={state.email}
+          defaultValue={state.login}
           aria-invalid={state.error ? true : undefined}
           aria-describedby={state.error ? "login-error" : undefined}
           className={fieldClass}
@@ -35,7 +33,7 @@ export function LoginForm() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="password" className="text-sm font-medium text-text">
+        <label htmlFor="password" className={labelClass}>
           비밀번호
         </label>
         <input
@@ -62,6 +60,15 @@ export function LoginForm() {
       >
         {pending ? "로그인하는 중…" : "로그인"}
       </button>
+
+      <div className="flex items-center justify-between text-[15px]">
+        <Link href="/signup" className="inline-flex min-h-11 items-center text-text underline underline-offset-4">
+          가입하기
+        </Link>
+        <Link href="/recover" className="inline-flex min-h-11 items-center text-text-muted hover:text-text">
+          비밀번호를 잊었어요
+        </Link>
+      </div>
     </form>
   );
 }

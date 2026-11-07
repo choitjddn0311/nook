@@ -23,6 +23,6 @@ export default function WritePage() {
 
 async function NewPostEditor() {
   const userId = await getCurrentUserId();
-  if (!userId) redirect("/login");
+  if (!userId) redirect("/");
   return <PostEditor initial={EMPTY} userId={userId} />;
 }

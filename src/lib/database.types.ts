@@ -110,6 +110,9 @@ export type Database = {
         }[];
       };
       admin_set_status: { Args: { target: string; new_status: "approved" | "rejected" }; Returns: undefined };
+      // 18단계: 복구 코드 (supabase/migrations/20261107064302_add_account_recovery.sql)
+      create_recovery_code: { Args: Record<PropertyKey, never>; Returns: string };
+      reset_password_with_code: { Args: { identifier: string; code: string; new_password: string }; Returns: string | null };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
