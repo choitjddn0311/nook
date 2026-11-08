@@ -26,29 +26,31 @@ Nook에는 다른 앱이 가져다 쓰는 공개 REST API가 없습니다. 대�
 
 ## 1. 구조
 
+**요청 흐름**: 화면에서 데이터까지
+
 ```mermaid
 flowchart LR
-  B[브라우저 / 홈 화면 앱]
-  subgraph Vercel["Next.js 16 (Vercel, dub1)"]
-    P[proxy<br/>로그인·승인 확인]
-    SA[서버 동작<br/>Server Actions]
-    RH[HTTP 주소<br/>Route Handlers]
-  end
-  subgraph Supabase["Supabase (eu-west-1)"]
-    AUTH[Auth]
-    REST[PostgREST<br/>표 + RLS]
-    RPC[DB 함수<br/>security definer]
-    CRON[pg_cron]
-    EF[Edge Function<br/>on-this-day-push]
-  end
-  PUSH[브라우저 푸시 서비스<br/>Apple · Google · Mozilla]
-
-  B --> P --> SA & RH
-  SA & RH --> AUTH & REST & RPC
-  CRON -- 매일 KST 9시 --> EF
-  EF --> RPC
-  EF --> PUSH --> B
+  B["브라우저<br/>홈 화면 앱"] --> P["proxy<br/>로그인·승인 확인"]
+  P --> SC["서버 컴포넌트<br/>화면 그리기"]
+  P --> SA["서버 동작<br/>Server Actions"]
+  P --> RH["HTTP 주소<br/>Route Handlers"]
+  SC --> SB[("Supabase<br/>Auth · 표 + RLS · DB 함수")]
+  SA --> SB
+  RH --> SB
 ```
+
+**알림 흐름**: 매일 아침 지난 오늘 알림
+
+```mermaid
+flowchart LR
+  CRON["pg_cron<br/>매일 KST 9시"] --> EF["Edge Function<br/>on-this-day-push"]
+  EF -- "대상 조회 · 보낸 날 기록" --> DB[("DB<br/>push_targets_today<br/>push_subscriptions")]
+  EF --> PUSH["브라우저 푸시 서비스<br/>Apple · Google · Mozilla"]
+  PUSH --> SW["기기의 서비스워커<br/>/sw.js"]
+  SW -- "누르면" --> PAST["/past 화면"]
+```
+
+Next.js는 Vercel(dub1), Supabase는 eu-west-1(아일랜드)에 있습니다.
 
 - 브라우저는 Supabase를 **직접 부르지 않습니다.** 모든 읽기와 쓰기는 Next.js 서버(서버 컴포넌트, 서버 동작, HTTP 주소)를 거칩니다.
 - 서버는 **공개 키(publishable key)와 사용자 로그인 쿠키**로 Supabase를 부릅니다. 앱에는 비밀 키(service role)가 없습니다.
