@@ -6,6 +6,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SEARCH_VERIFICATION, SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/site";
 import { THEME_BG, themeInitScript } from "@/lib/theme";
 
+const OG_IMAGE_ALT = "오늘의 생각을 다시 만나는 곳, Nook. 오른쪽에 Nook 홈 화면.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Nook",
@@ -19,9 +21,9 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "오늘의 생각을 다시 만나는 곳, Nook. 오른쪽에 Nook 홈 화면." }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: OG_IMAGE_ALT }],
   },
-  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION, images: ["/og.png"] },
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION, images: [{ url: "/og.png", alt: OG_IMAGE_ALT }] },
   // 기본은 검색에서 뺀다. 공개 화면(랜딩, 처리방침, 약관)만 각 페이지에서 허용한다.
   robots: { index: false, follow: false },
   verification: {
