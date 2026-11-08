@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { removeImageFiles } from "@/lib/post-images";
 import { isPostId } from "@/lib/posts";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,10 +11,13 @@ export async function deletePost(id: string): Promise<DeleteState> {
   if (!isPostId(id)) return { error: "지울 글을 찾지 못했어요." };
 
   const supabase = await createClient();
+  // 사진 파일은 글과 함께 자동으로 지워지지 않아서 먼저 지운다 (사진 정보 행은 글을 지우면 cascade)
+  const { data: images } = await supabase.from("post_images").select("path").eq("post_id", id);
   const { data, error } = await supabase.from("posts").delete().eq("id", id).select("id");
 
   if (error) return { error: "지우지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요." };
   if (!data || data.length === 0) return { error: "지울 글을 찾지 못했어요. 이미 지워졌을 수 있어요." };
+  await removeImageFiles((images ?? []).map((i) => i.path)); // 실패해도 매일 정리 함수가 지운다
 
   redirect("/");
 }

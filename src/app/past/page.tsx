@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PostListItem } from "@/components/post-list-item";
+import { countImagesByPost } from "@/lib/post-images";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { formatPostDate } from "@/lib/format";
 import type { SeoulDate } from "@/lib/on-this-day";
@@ -27,6 +28,7 @@ const dateLabel = ({ y, m, d }: SeoulDate) =>
 
 async function PastGroups() {
   const groups = await getPastGroups();
+  const imageCounts = await countImagesByPost(groups.flatMap((g) => g.posts.map((p) => p.id)));
 
   if (groups.length === 0) {
     return (
@@ -46,7 +48,7 @@ async function PastGroups() {
           <p className="text-sm text-text-muted">{dateLabel(group.date)}</p>
           <ul className="mt-1 flex flex-col">
             {group.posts.map((post) => (
-              <PostListItem key={post.id} post={post} when="time" />
+              <PostListItem key={post.id} post={post} when="time" imageCount={imageCounts.get(post.id)} />
             ))}
           </ul>
         </section>

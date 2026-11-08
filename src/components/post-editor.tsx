@@ -5,14 +5,16 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BottomBar } from "@/components/bottom-bar";
+import { ImageAttachments } from "@/components/image-attachments";
 import { TagInput } from "@/components/tag-input";
 import { createAutosaver, type SaveStatus } from "@/lib/autosaver";
 import { clearDraft, readDraft, sameValue, setDraftOwner } from "@/lib/drafts";
+import type { PostImage } from "@/lib/post-images";
 import type { PostFormat, PostValue } from "@/lib/post-form";
 import { formatTextStats } from "@/lib/text-stats";
 
 type Props = {
-  initial: PostValue & { id: string | null; updatedAt: string | null };
+  initial: PostValue & { id: string | null; updatedAt: string | null; images?: PostImage[] };
   userId: string; // 기기 임시본을 계정마다 나누는 데 쓴다
 };
 
@@ -144,6 +146,17 @@ export function PostEditor({ initial, userId }: Props) {
   }
 
   const markdown = value.format === "markdown";
+
+  // 사진을 붙일 글: 새 글이면 먼저 저장해서 만든다 (사진은 글이 있어야 붙일 수 있다)
+  async function ensurePost(): Promise<{ id: string } | { error: string }> {
+    if (saver.id) return { id: saver.id };
+    if (!value.content.trim()) return { error: "본문을 먼저 조금 적어 주세요. 그다음 사진을 붙일 수 있어요." };
+    const result = await saver.flush();
+    if (saver.id) return { id: saver.id };
+    if (result === "empty") return { error: "본문을 먼저 조금 적어 주세요. 그다음 사진을 붙일 수 있어요." };
+    if (result === "offline") return { error: "인터넷이 연결되면 사진을 붙일 수 있어요." };
+    return { error: "글을 저장하지 못해 사진을 붙일 수 없어요. 잠시 후 다시 해 주세요." };
+  }
 
   async function finish() {
     if (finishing) return;
@@ -287,6 +300,8 @@ export function PostEditor({ initial, userId }: Props) {
           </section>
         )}
       </div>
+
+      <ImageAttachments initial={initial.images ?? []} ensurePost={ensurePost} />
 
       <TagInput tags={value.tags} onChange={(tags) => change({ tags })} />
 

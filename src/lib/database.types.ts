@@ -99,6 +99,24 @@ export type Database = {
         Update: { [_ in never]: never };
         Relationships: [];
       };
+      // 글에 붙인 사진 정보 (supabase/migrations/20261108061627_post_images.sql). 파일은 Storage post-images
+      // 넣기는 add_post_image 함수로만, 고치기는 alt·position만
+      post_images: {
+        Row: {
+          id: string;
+          post_id: string;
+          user_id: string;
+          path: string;
+          width: number;
+          height: number;
+          alt: string | null;
+          position: number;
+          created_at: string;
+        };
+        Insert: { [_ in never]: never };
+        Update: { alt?: string | null; position?: number };
+        Relationships: [];
+      };
       // 알림 시간·글쓰기 알림 설정 (supabase/migrations/20261108060321_notification_schedule.sql). 계정마다 하나
       notification_settings: {
         Row: {
@@ -155,6 +173,7 @@ export type Database = {
           status: "pending" | "approved" | "rejected";
           is_admin: boolean;
           post_count: number; // 글 개수만 (내용은 다루지 않음)
+          image_count: number; // 사진 개수만 (사진은 볼 수 없음)
           created_at: string;
           approved_at: string | null;
         }[];
@@ -174,6 +193,7 @@ export type Database = {
         Returns: { id: string; email: string; message: string; created_at: string; answered_at: string | null }[];
       };
       admin_update_inquiry: { Args: { target: string; action: "answered" | "unanswered" | "delete" }; Returns: undefined };
+      add_post_image: { Args: { p_post_id: string; p_path: string; p_width: number; p_height: number }; Returns: string };
       save_push_subscription: { Args: { p_endpoint: string; p_p256dh: string; p_auth: string }; Returns: undefined };
       create_recovery_code: { Args: Record<PropertyKey, never>; Returns: string };
       reset_password_with_code: { Args: { identifier: string; code: string; new_password: string }; Returns: string | null };

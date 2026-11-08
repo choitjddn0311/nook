@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PostListItem } from "@/components/post-list-item";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
+import { countImagesByPost } from "@/lib/post-images";
 import { hasAnyFilter, searchCondition, type HomeFilters } from "@/lib/home-filters";
 import { createClient } from "@/lib/supabase/server";
 
@@ -33,6 +34,7 @@ export async function PostList({ filters }: { filters: HomeFilters }) {
   }
 
   const filtered = hasAnyFilter(filters);
+  const imageCounts = await countImagesByPost((posts ?? []).map((p) => p.id));
 
   if (!posts || posts.length === 0) {
     if (!filtered) {
@@ -73,7 +75,7 @@ export async function PostList({ filters }: { filters: HomeFilters }) {
       )}
       <ul className="flex flex-col">
         {posts.map((post) => (
-          <PostListItem key={post.id} post={post} />
+          <PostListItem key={post.id} post={post} imageCount={imageCounts.get(post.id)} />
         ))}
       </ul>
     </section>

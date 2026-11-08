@@ -13,7 +13,8 @@ type Item = {
 
 // 글 목록의 한 줄 (날짜 → 제목/첫 줄 → 미리보기 2줄 → 태그). 홈 목록과 '과거의 생각'이 같이 쓴다.
 // when="time": 구역 제목에 이미 날짜가 있을 때 날짜 대신 시각만 (지난 생각 화면)
-export function PostListItem({ post, when = "date" }: { post: Item; when?: "date" | "time" }) {
+// imageCount: 붙인 사진 수 (있으면 날짜 줄에 '사진 n')
+export function PostListItem({ post, when = "date", imageCount = 0 }: { post: Item; when?: "date" | "time"; imageCount?: number }) {
   const { headline, preview } = getPostHeadline(post.title, post.content, post.format);
   return (
     <li className="border-b border-border last:border-b-0">
@@ -30,6 +31,11 @@ export function PostListItem({ post, when = "date" }: { post: Item; when?: "date
           <time dateTime={post.created_at}>
             {when === "time" ? formatPostTime(post.created_at) : formatPostDate(post.created_at)}
           </time>
+          {imageCount > 0 && (
+            <span>
+              <span aria-hidden="true">·</span> 사진 {imageCount}
+            </span>
+          )}
         </span>
         <span className="line-clamp-1 text-lg leading-snug font-semibold tracking-[-0.01em] text-text">{headline}</span>
         {preview && <span className="line-clamp-2 text-base leading-relaxed text-text-muted">{preview}</span>}
