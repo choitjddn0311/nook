@@ -82,6 +82,22 @@ export type Database = {
       };
       // 17단계: 계정마다 승인 상태·관리자 여부 (supabase/migrations/20261107062127_add_profiles_approval.sql)
       // 본인 것을 읽기만 할 수 있다. 바꾸는 건 관리자 함수(admin_set_status)만.
+      // 지난 오늘 알림: 알림을 켠 기기 (supabase/migrations/20261108014217_push_subscriptions.sql)
+      // 넣기는 save_push_subscription 함수로만, 읽기·지우기는 본인 것만
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at: string;
+          last_sent_on: string | null;
+        };
+        Insert: { [_ in never]: never };
+        Update: { [_ in never]: never };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -120,6 +136,7 @@ export type Database = {
       complete_onboarding: { Args: Record<PropertyKey, never>; Returns: undefined };
       // 20단계: 탈퇴 (supabase/migrations/20261107075800_add_delete_my_account.sql)
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
+      save_push_subscription: { Args: { p_endpoint: string; p_p256dh: string; p_auth: string }; Returns: undefined };
       create_recovery_code: { Args: Record<PropertyKey, never>; Returns: string };
       reset_password_with_code: { Args: { identifier: string; code: string; new_password: string }; Returns: string | null };
     };

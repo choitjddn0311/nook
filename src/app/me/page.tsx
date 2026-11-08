@@ -4,6 +4,7 @@ import { ChangePasswordForm } from "@/components/change-password-form";
 import { DeleteAccount } from "@/components/delete-account";
 import { LegalLinks } from "@/components/legal-document";
 import { LogoutButton } from "@/components/logout-button";
+import { PushToggle } from "@/components/push-toggle";
 import { RegenerateRecoveryCode } from "@/components/regenerate-recovery-code";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { ActivityCalendar, MonthlyBars, StatNumbers, TopTags } from "@/components/thinking-stats";
@@ -38,39 +39,49 @@ async function AccountSettings() {
   const account = await getAccount();
   if (!account) return null;
   return (
-    <section aria-labelledby="me-settings" className="mt-12">
-      <h2 id="me-settings" className="text-lg leading-snug font-semibold tracking-[-0.01em] text-text">
-        계정 관리
-      </h2>
-      <div className="mt-2 divide-y divide-border">
-        {account.hasPassword && <ChangePasswordForm />}
-        {account.hasPassword && (
-          <div className="py-2">
-            <p className="text-[15px] leading-relaxed text-text-muted">
-              비밀번호를 잊었을 때 쓰는 코드예요. 새로 만들면 이전 코드는 쓸 수 없어요.
-            </p>
-            <RegenerateRecoveryCode className="mt-1" />
-          </div>
-        )}
-        <div className="py-3">
-          <p className="text-base text-text">내 글 내보내기</p>
-          <p className="mt-1 text-[15px] leading-relaxed text-text-muted">글과 덧붙인 생각을 모두 파일로 받아요.</p>
-          <p className="mt-1 flex gap-4 text-base">
-            <a href="/me/export?format=md" download className="inline-flex min-h-11 items-center text-text underline underline-offset-4">
-              Markdown으로 받기
-            </a>
-            <a href="/me/export?format=json" download className="inline-flex min-h-11 items-center text-text underline underline-offset-4">
-              JSON으로 받기
-            </a>
-          </p>
+    <>
+      <section aria-labelledby="me-alerts" className="mt-12">
+        <h2 id="me-alerts" className="text-lg leading-snug font-semibold tracking-[-0.01em] text-text">
+          알림
+        </h2>
+        <div className="mt-2">
+          <PushToggle />
         </div>
-        {!account.isAdmin && (
-          <div className="py-2">
-            <DeleteAccount hasPassword={account.hasPassword} canExport />
+      </section>
+      <section aria-labelledby="me-settings" className="mt-12">
+        <h2 id="me-settings" className="text-lg leading-snug font-semibold tracking-[-0.01em] text-text">
+          계정 관리
+        </h2>
+        <div className="mt-2 divide-y divide-border">
+          {account.hasPassword && <ChangePasswordForm />}
+          {account.hasPassword && (
+            <div className="py-2">
+              <p className="text-[15px] leading-relaxed text-text-muted">
+                비밀번호를 잊었을 때 쓰는 코드예요. 새로 만들면 이전 코드는 쓸 수 없어요.
+              </p>
+              <RegenerateRecoveryCode className="mt-1" />
+            </div>
+          )}
+          <div className="py-3">
+            <p className="text-base text-text">내 글 내보내기</p>
+            <p className="mt-1 text-[15px] leading-relaxed text-text-muted">글과 덧붙인 생각을 모두 파일로 받아요.</p>
+            <p className="mt-1 flex gap-4 text-base">
+              <a href="/me/export?format=md" download className="inline-flex min-h-11 items-center text-text underline underline-offset-4">
+                Markdown으로 받기
+              </a>
+              <a href="/me/export?format=json" download className="inline-flex min-h-11 items-center text-text underline underline-offset-4">
+                JSON으로 받기
+              </a>
+            </p>
           </div>
-        )}
-      </div>
-    </section>
+          {!account.isAdmin && (
+            <div className="py-2">
+              <DeleteAccount hasPassword={account.hasPassword} canExport />
+            </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 }
 

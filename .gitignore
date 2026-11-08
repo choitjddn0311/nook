@@ -46,3 +46,6 @@ next-env.d.ts
 
 # claude code 개인 설정
 /.claude/settings.local.json
+
+# Supabase CLI 임시 파일
+supabase/.temp/
