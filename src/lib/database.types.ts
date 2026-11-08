@@ -106,10 +106,14 @@ export type Database = {
           email: string | null;
           provider: string;
           status: "pending" | "approved" | "rejected";
+          is_admin: boolean;
+          post_count: number; // 글 개수만 (내용은 다루지 않음)
           created_at: string;
           approved_at: string | null;
         }[];
       };
+      // 관리자 대시보드: 계정 삭제 (supabase/migrations/20261108011427_admin_dashboard.sql)
+      admin_delete_account: { Args: { target: string }; Returns: undefined };
       admin_set_status: { Args: { target: string; new_status: "approved" | "rejected" }; Returns: undefined };
       // 18단계: 복구 코드 (supabase/migrations/20261107064302_add_account_recovery.sql)
       // 19.5단계: 사용법 안내를 봤다는 기록 (supabase/migrations/20261107074248_add_onboarding.sql)
