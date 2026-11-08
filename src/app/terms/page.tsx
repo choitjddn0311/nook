@@ -3,7 +3,12 @@ import Link from "next/link";
 import { LegalDocument, LegalSection } from "@/components/legal-document";
 import { OPERATOR } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "이용약관 · Nook" };
+export const metadata: Metadata = {
+  title: "이용약관 · Nook",
+  description: "Nook을 이용할 때 지켜야 할 약속과 서비스 운영 원칙을 안내해요.",
+  robots: { index: true, follow: true },
+  alternates: { canonical: "/terms" },
+};
 
 export default function TermsPage() {
   return (
