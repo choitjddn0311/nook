@@ -6,10 +6,14 @@ import { LegalLinks } from "@/components/legal-document";
 import { NookLogo } from "@/components/nook-logo";
 import { primaryButton, secondaryButton } from "@/lib/button-styles";
 import { OPERATOR } from "@/lib/legal";
+import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/site";
 
+// 실제 주소는 / (proxy가 로그인 안 한 사람에게 이 화면을 보여 준다) → 검색 엔진에도 /로 알린다
 export const metadata: Metadata = {
-  title: "Nook",
-  description: "오늘의 생각을 다시 만나는 곳, Nook. 몇 줄로 정리해 두면 한 달 뒤, 1년 뒤 같은 날에 다시 만나요.",
+  title: { absolute: SITE_TITLE },
+  description: SITE_DESCRIPTION,
+  robots: { index: true, follow: true },
+  alternates: { canonical: "/" },
 };
 
 // 로그인 전 첫 화면(랜딩). 주소는 / 이고, proxy가 로그인 안 한 사람만 이 화면으로 돌려 보여 준다.
