@@ -9,6 +9,7 @@ export const SITE_DESCRIPTION =
 
 // 검색 엔진 소유 확인 코드 (Google Search Console, 네이버 서치어드바이저의 'HTML 태그' 방식).
 // 받은 meta 태그의 content 값만 넣는다. 비어 있으면 태그를 넣지 않는다. 공개돼도 괜찮은 값이다.
+// Google은 HTML 파일 방식으로 확인했다: public/googlecbde0de40ebe2e84.html (지우면 확인이 풀린다. 도메인을 바꾸면 새로 받는다)
 export const SEARCH_VERIFICATION = {
   google: "",
   naver: "",
