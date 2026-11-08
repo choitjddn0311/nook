@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { LegalDocument, LegalSection, LegalTable } from "@/components/legal-document";
 import { LEGAL_EFFECTIVE_DATE, OPERATOR } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "개인정보 처리방침 · Nook" };
+export const metadata: Metadata = {
+  title: "개인정보 처리방침 · Nook",
+  description: "Nook이 어떤 개인정보를 왜 처리하고, 언제 지우는지 안내해요.",
+  robots: { index: true, follow: true },
+  alternates: { canonical: "/privacy" },
+};
 
 // 개인정보 보호법 제30조, 시행령 제31조, 개인정보보호위원회 작성지침(2025. 4.)의 항목 순서를 따른다.
 // 실제 처리 현황과 달라지면 이 문서를 고치고 시행일과 변경 이력을 함께 남긴다.
