@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BottomBar } from "@/components/bottom-bar";
+import { ContactForm } from "@/components/contact-form";
 import { LandingShot } from "@/components/landing-shot";
 import { LegalLinks } from "@/components/legal-document";
 import { NookLogo } from "@/components/nook-logo";
@@ -27,6 +28,24 @@ const DIFFERENT = [
   ["이메일이 필요 없어요", "아이디와 비밀번호로 가입해요. 비밀번호를 잊으면 가입할 때 받은 복구 코드로 다시 정해요."],
   ["지난 글을 고치지 않아요", "그때의 글은 그대로 두고, 지금의 생각을 날짜와 함께 아래에 덧붙여요."],
   ["어디서나 같은 글이에요", "폰, 태블릿, PC 브라우저에서 바로 열고, 홈 화면에 앱처럼 설치할 수 있어요."],
+];
+
+// 자주 묻는 질문. 답은 실제 동작과 처리방침에 맞춘다 (바뀌면 함께 고친다).
+const FAQ = [
+  [
+    "내 글은 누가 볼 수 있나요?",
+    "나만 볼 수 있어요. 다른 사용자는 볼 수 없고, 관리 화면에도 글 내용은 나오지 않아요. 다만 글을 암호화해 저장하지는 않아서 데이터베이스 권한이 있는 운영자는 기술적으로 읽을 수 있어요. 꼭 필요한 경우가 아니면 열람하지 않아요.",
+  ],
+  ["가입하면 바로 쓸 수 있나요?", "지금은 한 분씩 천천히 맞이하고 있어서, 운영자가 승인하면 쓸 수 있어요. 승인되면 바로 시작할 수 있어요."],
+  [
+    "앱을 설치해야 하나요?",
+    "브라우저에서 바로 쓸 수 있어요. 홈 화면에 추가하면 앱처럼 열리고, 아이폰에서는 홈 화면에 추가해야 지난 오늘 알림을 받을 수 있어요.",
+  ],
+  [
+    "비밀번호를 잊으면 어떻게 하나요?",
+    "가입할 때 받은 복구 코드로 직접 새 비밀번호를 정해요. 이메일을 받지 않아서, 복구 코드가 없으면 되찾기 어려워요.",
+  ],
+  ["그만 쓰고 싶으면 글은 어떻게 되나요?", "마이페이지에서 글을 파일로 내려받은 뒤 탈퇴할 수 있어요. 탈퇴하면 계정과 글이 바로 지워져요."],
 ];
 
 function Actions({ className = "" }: { className?: string }) {
@@ -181,6 +200,43 @@ export default function WelcomePage() {
           지금은 한 분씩 천천히 맞이하고 있어요. 가입한 뒤 승인되면 바로 시작할 수 있어요.
         </p>
         <Actions className="mt-7 hidden sm:flex" />
+      </section>
+
+      {/* 자주 묻는 질문: 브라우저 기본 접기(details)라 키보드·화면 낭독기로도 열고 닫는다 */}
+      <section aria-labelledby="faq" className="border-t border-border pt-16 sm:pt-20 lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-16 lg:pt-24">
+        <h2 id="faq" className={h2Class}>
+          자주 묻는 질문
+        </h2>
+        <div className="mt-6 divide-y divide-border border-b border-border lg:mt-0">
+          {FAQ.map(([question, answer]) => (
+            <details key={question} className="group">
+              <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 text-lg leading-snug font-semibold tracking-[-0.01em] text-text [&::-webkit-details-marker]:hidden">
+                {question}
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 20 20"
+                  className="size-5 shrink-0 text-text-muted transition-transform duration-150 ease-out group-open:rotate-45 motion-reduce:transition-none"
+                >
+                  <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                </svg>
+              </summary>
+              <p className="pb-5 text-base leading-relaxed text-text-muted lg:pr-10">{answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* 문의하기 → 보내면 /contact/sent */}
+      <section aria-labelledby="contact" className="pt-16 pb-20 sm:pt-20 sm:pb-28 lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-16 lg:pt-24 lg:pb-32">
+        <div>
+          <h2 id="contact" className={h2Class}>
+            문의하기
+          </h2>
+          <p className={bodyClass}>궁금한 점이나 불편한 점을 남겨 주세요. 24시간 안에 이메일로 답장해요.</p>
+        </div>
+        <div className="mt-8 lg:mt-0">
+          <ContactForm />
+        </div>
       </section>
 
       {/* 폰에서는 엄지가 닿는 자리에 항상 */}

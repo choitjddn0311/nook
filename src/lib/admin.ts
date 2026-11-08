@@ -16,3 +16,13 @@ export async function getSignupsForAdmin(): Promise<{ others: Signup[]; all: Sig
   const all = data ?? [];
   return { all, others: all.filter((s) => s.id !== account.userId) };
 }
+
+export type Inquiry = { id: string; email: string; message: string; created_at: string; answered_at: string | null };
+
+// 관리자 화면용 문의 목록 (답장 안 한 것 먼저). getSignupsForAdmin과 같은 페이지에서 쓰므로 관리자 확인은 거기서 한다.
+export async function getInquiriesForAdmin(): Promise<Inquiry[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_list_inquiries");
+  if (error) throw new Error("문의 목록을 불러오지 못했어요.");
+  return data ?? [];
+}

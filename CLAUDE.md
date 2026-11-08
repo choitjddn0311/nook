@@ -165,6 +165,7 @@ MVP가 끝난 뒤 아래 순서로 진행한다. 이미 MVP에서 만든 부분�
 - 모든 테이블은 **RLS(Row Level Security)를 켠다.** 본인만 읽고 쓸 수 있는 정책을 둔다.
 - 글·메모는 **승인된 계정만** 읽고 쓴다 (`public.is_approved()`를 쓰는 restrictive 정책). 화면 안내(proxy → `/waiting`)는 보조일 뿐, 잠금은 DB가 한다.
 - **앱의 관리 기능으로는 다른 사람의 글을 볼 수 없다.** 관리자 기능은 계정 정보(아이디·이메일·가입 방식·상태)와 계정별 글 개수만 다루는 security definer 함수(`admin_list_signups`, `admin_set_status`, `admin_delete_account`)로만 한다. 관리자는 자기 자신과 다른 관리자를 지울 수 없다. 글은 암호화 저장이 아니므로 DB 권한이 있는 운영자는 기술적으로 읽을 수 있다. 안내 문구에 "아무도 못 본다"고 쓰지 않는다.
+- **문의하기**(랜딩 → `/contact/sent`)는 `inquiries` 표에 저장한다. 표는 직접 읽거나 쓸 수 없고 `submit_inquiry`(도배 제한)로만 넣고, 관리자는 `admin_list_inquiries`·`admin_update_inquiry`로만 본다. 답장은 운영자가 이메일로 직접, 답장 뒤 1년이 지나면 pg_cron이 자동 삭제. 안내한 답변 시간은 24시간.
 - 아이디 계정은 안에서 `<아이디>@users.nook.invalid`로 저장한다(`src/lib/username.ts`, DB 함수 `reset_password_with_code`와 도메인을 맞춘다). 화면에는 아이디만 보여 주고, 메일은 보내지 않는다(Supabase Confirm email 끔).
 - 비밀번호 복구는 복구 코드(`account_recovery`, 해시만 저장, 표는 함수로만 접근)로 한다. `reset_password_with_code`는 `auth.users`·`auth.sessions`를 직접 고치므로 공식 API가 아니다. Supabase 업데이트 뒤에도 동작하는지 확인한다.
 - 복구 코드 화면을 떠날 때와 로그아웃할 때는 페이지를 전체 새로 불러온다. Next가 지나온 화면을 메모리에 숨겨 두어서, 다음 사람에게 남지 않게 비우는 것이다.

@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AccountList } from "@/components/account-list";
+import { InquiryRow } from "@/components/inquiry-row";
 import { SignupRow } from "@/components/signup-row";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
-import { getSignupsForAdmin } from "@/lib/admin";
+import { getInquiriesForAdmin, getSignupsForAdmin } from "@/lib/admin";
 import { seoulDayKey } from "@/lib/stats";
 
 export const metadata: Metadata = { title: "관리 · Nook" };
 
-// 관리자 대시보드: 승인 대기 → 현황 → 계정 목록을 한 화면에.
+// 관리자 대시보드: 승인 대기 → 문의 → 현황 → 계정 목록을 한 화면에.
 // 관리자도 다른 사람의 글은 볼 수 없다. 계정 정보와 글 개수만 다룬다.
 export default function AdminPage() {
   return (
@@ -24,7 +25,9 @@ export default function AdminPage() {
 const h2Class = "text-lg leading-snug font-semibold tracking-[-0.01em] text-text";
 
 async function Dashboard() {
-  const { all, others } = await getSignupsForAdmin();
+  const { all, others } = await getSignupsForAdmin(); // 관리자가 아니면 여기서 404
+  const inquiries = await getInquiriesForAdmin();
+  const unanswered = inquiries.filter((i) => i.answered_at === null).length;
   const waiting = others.filter((s) => s.status === "pending").sort((a, b) => a.created_at.localeCompare(b.created_at));
   const today = seoulDayKey(new Date());
   const stats: [string, string][] = [
@@ -48,6 +51,22 @@ async function Dashboard() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section aria-labelledby="admin-inquiries" className="mt-10">
+        <h2 id="admin-inquiries" className={h2Class}>
+          문의 <span className="font-normal text-text-muted tabular-nums">{unanswered}건 답장 전</span>
+        </h2>
+        {inquiries.length === 0 ? (
+          <p className="mt-3 text-[15px] text-text-muted">받은 문의가 없어요.</p>
+        ) : (
+          <ul className="mt-1 divide-y divide-border">
+            {inquiries.map((i) => (
+              <InquiryRow key={i.id} inquiry={i} />
+            ))}
+          </ul>
+        )}
+        <p className="mt-2 text-sm text-text-muted">답장한 문의는 1년 뒤 자동으로 지워져요.</p>
       </section>
 
       <section aria-labelledby="admin-stats" className="mt-10">

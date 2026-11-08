@@ -46,14 +46,20 @@ async function SignedInLinks() {
   );
 }
 
-// 관리자에게만: '관리' 링크 + 승인 대기 인원 (있을 때만 숫자)
+// 관리자에게만: '관리' 링크 + 처리할 일 수(승인 대기 + 답장 전 문의, 있을 때만 숫자)
 async function AdminLink() {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("admin_list_signups");
-  const pending = (data ?? []).filter((s) => s.status === "pending").length;
+  const [{ data: signups }, { data: inquiries }] = await Promise.all([
+    supabase.rpc("admin_list_signups"),
+    supabase.rpc("admin_list_inquiries"),
+  ]);
+  const pending = (signups ?? []).filter((s) => s.status === "pending").length;
+  const unanswered = (inquiries ?? []).filter((i) => i.answered_at === null).length;
+  const todo = pending + unanswered;
+  const label = [pending > 0 && `승인 대기 ${pending}명`, unanswered > 0 && `답장 전 문의 ${unanswered}건`].filter(Boolean).join(", ");
   return (
-    <NavLink href="/admin" label={pending > 0 ? `관리, 승인 대기 ${pending}명` : "관리"}>
-      관리{pending > 0 && <span className="ml-1 tabular-nums">{pending}</span>}
+    <NavLink href="/admin" label={todo > 0 ? `관리, ${label}` : "관리"}>
+      관리{todo > 0 && <span className="ml-1 tabular-nums">{todo}</span>}
     </NavLink>
   );
 }
