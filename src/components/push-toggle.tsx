@@ -18,7 +18,7 @@ function supported() {
   return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 }
 
-// 지난 오늘 알림 켜기/끄기 (마이페이지). 기기마다 따로 켠다.
+// 이 기기에서 알림 받기 켜기/끄기 (마이페이지). 기기마다 따로 켠다. 무슨 알림을 언제 받을지는 NotificationSettingsForm(계정 단위)
 // 권한은 '켜기'를 누를 때만 묻는다.
 export function PushToggle() {
   const [state, setState] = useState<State>("checking");
@@ -99,9 +99,9 @@ export function PushToggle() {
   return (
     <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
       <div className="min-w-0">
-        <p className="text-base text-text">지난 오늘 알림</p>
+        <p className="text-base text-text">이 기기에서 알림 받기</p>
         <p className="mt-1 text-[15px] leading-relaxed text-text-muted">
-          한 달 전, 6개월 전, 1년 전 오늘 쓴 글이 있는 날 아침 9시에 알려 드려요. 알림에 글 내용은 나오지 않아요.
+          켜 둔 기기로 아래 알림이 와요. 폰, PC처럼 기기마다 따로 켜요.
         </p>
         <p role="status" className="mt-1 text-[15px] leading-relaxed text-text empty:hidden">
           {error ?? note ?? ""}

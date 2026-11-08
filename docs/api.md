@@ -5,8 +5,8 @@ Nook에는 다른 앱이 가져다 쓰는 공개 REST API가 없습니다. 대�
 | 층 | 수 | 누가 부르나 | 코드 |
 |---|---|---|---|
 | [HTTP 주소](#3-http-주소) | 3 | 브라우저 | `src/app/**/route.ts` |
-| [서버 동작](#4-서버-동작-server-actions) | 21 | Nook 화면 | `src/app/**/actions.ts` |
-| [데이터베이스](#5-데이터베이스) | 표 6, 함수 17 | 서버 동작, 발송 함수 | `supabase/migrations/` |
+| [서버 동작](#4-서버-동작-server-actions) | 22 | Nook 화면 | `src/app/**/actions.ts` |
+| [데이터베이스](#5-데이터베이스) | 표 7, 함수 17 | 서버 동작, 발송 함수 | `supabase/migrations/` |
 | [Edge Function](#6-edge-function) · [예약 작업](#7-예약-작업) | 1 · 2 | DB 예약 작업 | `supabase/functions/` |
 
 > 기준: `main` 브랜치, 2026-11-08. 코드를 바꾸면 같은 PR에서 이 문서도 고칩니다([9번](#9-문서-유지-규칙)).
@@ -39,15 +39,15 @@ flowchart LR
   RH --> SB
 ```
 
-**알림 흐름**: 매일 아침 지난 오늘 알림
+**알림 흐름**: 사용자가 고른 시각에 지난 오늘·글쓰기 알림
 
 ```mermaid
 flowchart LR
-  CRON["pg_cron<br/>매일 KST 9시"] --> EF["Edge Function<br/>on-this-day-push"]
-  EF -- "대상 조회 · 보낸 날 기록" --> DB[("DB<br/>push_targets_today<br/>push_subscriptions")]
+  CRON["pg_cron<br/>매시 정각"] --> EF["Edge Function<br/>send-notifications"]
+  EF -- "대상 조회 · 보낸 날 기록" --> DB[("DB<br/>push_targets<br/>push_subscriptions")]
   EF --> PUSH["푸시 서비스<br/>Apple · Google<br/>Mozilla"]
   PUSH --> SW["기기의 서비스워커<br/>/sw.js"]
-  SW -- "누르면" --> PAST["/past 화면"]
+  SW -- "누르면" --> PAST["/past · /write"]
 ```
 
 Next.js는 Vercel(dub1), Supabase는 eu-west-1(아일랜드)에 있습니다.
@@ -218,10 +218,11 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 - 비밀번호 바꾸기와 탈퇴는 **현재 비밀번호를 다시 확인**합니다. Google 계정은 비밀번호가 없어서 탈퇴 때 확인 단계를 건너뜁니다.
 - 탈퇴하면 `delete_my_account()`가 `auth.users`의 내 행을 지우고, 글·덧붙인 생각·프로필·복구 코드·알림 구독이 함께 지워집니다(cascade). 관리자 계정은 탈퇴할 수 없습니다.
 
-### 4.5 지난 오늘 알림
+### 4.5 알림
 
 | 동작 | 파일 | 입력 | 결과 |
 |---|---|---|---|
+| `saveNotificationSettings` | `src/app/me/push-actions.ts` | `{ pastEnabled, pastHour, writeFrequency, writeWeekday, writeHour }` | `{ error }` |
 | `savePushSubscription` | `src/app/me/push-actions.ts` | `{ endpoint, p256dh, auth }` (브라우저 `PushSubscription`) | `{ error }` |
 | `deletePushSubscription` | 같은 파일 | `endpoint` | 없음 (RLS로 내 것만 지워짐) |
 | `isMyPushSubscription` | 같은 파일 | `endpoint` | `boolean` |
@@ -229,6 +230,9 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 - 알림 켜기는 화면(`src/components/push-toggle.tsx`)이 서비스워커 `/sw.js`를 등록하고, 권한을 묻고, 구독을 만든 뒤 이 동작을 부릅니다.
 - 같은 기기를 다른 계정이 썼을 수 있어서, 화면은 "켜져 있음"을 보여 주기 전에 `isMyPushSubscription`으로 서버에 묻습니다.
 - 공개 키는 `src/lib/push.ts`에 있습니다. 개인 키는 Supabase 비밀 값에만 있습니다.
+- **기기**(받을지)와 **설정**(무엇을 언제)은 나뉩니다. 기기는 기기마다 켜고(`push_subscriptions`), 설정은 계정마다 하나(`notification_settings`)로 켜 둔 모든 기기에 적용됩니다.
+- `saveNotificationSettings`는 바꿀 때마다 설정 전체를 보냅니다(`src/components/notification-settings-form.tsx`). 화면은 한 번에 하나씩 보내고, 보내는 동안 또 바뀌면 끝난 뒤 최신 값으로 다시 보냅니다. 서버는 값마다 범위를 확인하고, 이상하면 기본값을 씁니다.
+- 기본값(설정을 안 바꾼 계정): 지난 오늘 켜짐·오전 9시, 글쓰기 꺼짐 (`src/lib/notification-settings.ts`, DB `push_targets`와 같음)
 
 ### 4.6 문의
 
@@ -310,9 +314,21 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `id` PK · `user_id` | 기본값 `auth.uid()`, cascade |
 | `endpoint` (unique) | 브라우저 푸시 서비스의 기기 주소 |
 | `p256dh` · `auth` | 알림 내용 암호화용 기기 키 |
-| `created_at` · `last_sent_on` | 마지막으로 보낸 날(한국 날짜), 하루 두 번 보내지 않기 위함 |
+| `created_at` | |
+| `last_sent_on` · `last_write_sent_on` | 지난 오늘 · 글쓰기 알림을 마지막으로 보낸 날(한국 날짜). 하루 두 번 보내지 않기 위함 |
 
 권한: 승인된 사용자가 본인 것만 읽기·지우기. 넣기는 `save_push_subscription`으로만. 로그아웃·끄기·탈퇴 때 지워집니다.
+
+#### `notification_settings`: 알림 설정 (계정마다 하나)
+| 칸 | 기본값 | 설명 |
+|---|---|---|
+| `user_id` PK | `auth.uid()` | cascade |
+| `past_enabled` · `past_hour` | `true` · `9` | 지난 오늘 알림, 시(0~23, 한국 시간) |
+| `write_frequency` | `off` | `off` · `daily` · `weekly` |
+| `write_weekday` · `write_hour` | `0`(일) · `21` | 매주일 때 요일, 시 |
+| `updated_at` | | |
+
+권한: 승인된 사용자가 본인 것만 읽기·만들기·고치기(upsert). 지우기 없음(탈퇴하면 cascade). 범위는 check 제약으로도 막습니다. 행이 없으면 기본값으로 봅니다.
 
 #### `inquiries`: 문의
 | 칸 | 설명 |
@@ -353,7 +369,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 **발송 함수 전용** (`service_role`만)
 | 함수 | 반환 | 하는 일 |
 |---|---|---|
-| `push_targets_today()` | `{ id, endpoint, p256dh, auth, post_count }[]` | 오늘(한국 날짜) 보낼 기기: 승인된 계정 중 한 달 전·6개월 전·n년 전 같은 날 쓴 글이 있고, 오늘 아직 안 보낸 기기. 글은 개수만 |
+| `push_targets(p_kind)` | `{ id, endpoint, p256dh, auth, post_count, frequency }[]` | 지금(한국 시간) 이 시각에 보낼 기기. 승인된 계정만, 같은 종류는 하루 한 번. `past`: 고른 시각이고 한 달 전·6개월 전·n년 전 같은 날 쓴 글이 있음(글은 개수만). `write`: 고른 시각·요일이고, 매일이면 오늘, 매주면 지난 7일 안에 쓴 글이 없음 |
 | `check_push_cron_secret(p_secret)` | boolean | 예약 작업이 보낸 비밀 값이 Vault의 `push_cron_secret`과 같은지 |
 
 **내부용** (직접 부를 수 없음)
@@ -363,35 +379,38 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `set_updated_at()` | `posts`의 `updated_at` 트리거 |
 | `issue_recovery_code(target)` | 복구 코드를 만들어 해시만 저장. 위 두 복구 함수만 씀 |
 
-날짜 규칙: "n개월 전 같은 날"은 그 달에 그날이 없으면 그 달의 마지막 날입니다(3월 31일의 한 달 전 → 2월 28일 또는 29일). 화면(`src/lib/on-this-day.ts`)과 DB(`push_targets_today`)가 같은 규칙을 씁니다.
+날짜 규칙: "n개월 전 같은 날"은 그 달에 그날이 없으면 그 달의 마지막 날입니다(3월 31일의 한 달 전 → 2월 28일 또는 29일). 화면(`src/lib/on-this-day.ts`)과 DB(`push_targets`)가 같은 규칙을 씁니다.
 
 ---
 
 ## 6. Edge Function
 
-### `POST /functions/v1/on-this-day-push`
-지난 오늘 알림을 보냅니다. 코드: `supabase/functions/on-this-day-push/index.ts` (Deno, `@negrel/webpush`)
+### `POST /functions/v1/send-notifications`
+지난 오늘 알림과 글쓰기 알림을 보냅니다. 코드: `supabase/functions/send-notifications/index.ts` (Deno, `@negrel/webpush`)
 
 | | |
 |---|---|
-| 부르는 곳 | 예약 작업 `on-this-day-push`만 |
+| 부르는 곳 | 예약 작업 `send-notifications`만 (매시 정각) |
 | 인증 | 헤더 `x-cron-secret`. 틀리거나 없으면 `403 forbidden` (Supabase JWT 확인은 끔) |
 | 비밀 값 | `VAPID_KEYS`(Edge Function 비밀 값), `push_cron_secret`(DB Vault). 둘 다 코드·저장소에 없음 |
 
 요청 본문:
 | 본문 | 동작 | 응답 |
 |---|---|---|
-| `{}` | 오늘 대상 전체에 발송 | `{ "sent": n, "gone": n, "failed": n }` |
-| `{ "testSubscriptionId": "uuid" }` | 그 기기 하나에만 시험 알림 | `{ "test": "sent" \| "gone" \| "failed" \| "not found" }` |
+| `{}` | 지금 시각 대상에게 두 종류를 발송 | `{ "past": { "sent", "gone", "failed" }, "write": { … } }` |
+| `{ "testSubscriptionId": "uuid", "kind"?: "write" }` | 그 기기 하나에만 시험 알림 | `{ "test": "sent" \| "gone" \| "failed" \| "not found" }` |
 
 보내는 알림 (기기에서 서비스워커 `/sw.js`가 표시):
-```json
-{ "title": "Nook", "body": "지난 오늘 쓴 글이 2개 있어요", "url": "/past" }
-```
-- **글 내용은 넣지 않습니다.** 개수만 들어갑니다.
-- 푸시 옵션: TTL 12시간, urgency `normal`, topic `on-this-day`(아직 안 받은 알림은 새 것으로 바뀜)
-- 보낸 기기는 `last_sent_on`을 오늘로 기록하고, 404·410(사라진 기기)은 구독을 지웁니다.
-- 알림을 누르면 열린 Nook 창을 `/past`로 옮기거나, 없으면 새 창을 엽니다.
+| 종류 | 본문 | 누르면 | tag |
+|---|---|---|---|
+| 지난 오늘 | `지난 오늘 쓴 글이 2개 있어요` | `/past` | `on-this-day` |
+| 글쓰기 (매일) | `오늘 생각을 한 줄 남겨 볼까요?` | `/write` | `write-reminder` |
+| 글쓰기 (매주) | `이번 주 생각을 한 줄 남겨 볼까요?` | `/write` | `write-reminder` |
+
+- **글 내용은 넣지 않습니다.** 지난 오늘 알림에는 개수만 들어갑니다.
+- 푸시 옵션: TTL 6시간, urgency `normal`, topic은 tag와 같음(같은 종류의 안 받은 알림은 새 것으로 바뀌고, 두 종류는 서로 덮어쓰지 않음)
+- 보낸 기기는 `last_sent_on` 또는 `last_write_sent_on`을 오늘로 기록하고, 404·410(사라진 기기)은 구독을 지웁니다.
+- 알림을 누르면 열린 Nook 창을 그 주소로 옮기거나, 없으면 새 창을 엽니다.
 
 ## 7. 예약 작업
 
@@ -399,7 +418,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 
 | 이름 | 일정 (UTC) | 한국 시간 | 하는 일 |
 |---|---|---|---|
-| `on-this-day-push` | `0 0 * * *` | 매일 9:00 | `pg_net`으로 Edge Function 호출 (헤더에 Vault 비밀 값) |
+| `send-notifications` | `0 * * * *` | 매시 정각 | `pg_net`으로 Edge Function 호출 (헤더에 Vault 비밀 값). 그 시각을 고른 사람에게만 보냄 |
 | `delete-old-inquiries` | `0 19 * * *` | 매일 4:00 | 답장한 지 1년이 지난 문의 삭제 |
 
 ---

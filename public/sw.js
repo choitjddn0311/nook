@@ -5,7 +5,7 @@
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
-// 알림 받기: 발송 함수가 보낸 { title, body, url }. 글 내용은 들어 있지 않다.
+// 알림 받기: 발송 함수가 보낸 { title, body, url, tag }. 글 내용은 들어 있지 않다.
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -18,13 +18,13 @@ self.addEventListener("push", (event) => {
       body: data.body || "지난 오늘 쓴 글이 있어요",
       icon: "/icon/192",
       lang: "ko",
-      tag: "on-this-day", // 새 알림이 오면 이전 알림을 바꾼다 (쌓이지 않게)
+      tag: data.tag || "on-this-day", // 같은 종류의 새 알림이 오면 이전 것을 바꾼다 (지난 오늘·글쓰기는 따로)
       data: { url: data.url || "/past" },
     }),
   );
 });
 
-// 알림 누르기: 열려 있는 Nook 창이 있으면 그 창에서, 없으면 새 창으로 /past를 연다
+// 알림 누르기: 열려 있는 Nook 창이 있으면 그 창에서, 없으면 새 창으로 연다 (지난 오늘 → /past, 글쓰기 → /write)
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = new URL((event.notification.data && event.notification.data.url) || "/past", self.location.origin).href;
