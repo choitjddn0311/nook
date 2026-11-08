@@ -136,6 +136,13 @@ export type Database = {
       complete_onboarding: { Args: Record<PropertyKey, never>; Returns: undefined };
       // 20단계: 탈퇴 (supabase/migrations/20261107075800_add_delete_my_account.sql)
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
+      // 랜딩 문의하기 (supabase/migrations/20261108045400_inquiries.sql). 표는 직접 읽거나 쓸 수 없고 함수로만
+      submit_inquiry: { Args: { p_email: string; p_message: string }; Returns: undefined };
+      admin_list_inquiries: {
+        Args: Record<PropertyKey, never>;
+        Returns: { id: string; email: string; message: string; created_at: string; answered_at: string | null }[];
+      };
+      admin_update_inquiry: { Args: { target: string; action: "answered" | "unanswered" | "delete" }; Returns: undefined };
       save_push_subscription: { Args: { p_endpoint: string; p_p256dh: string; p_auth: string }; Returns: undefined };
       create_recovery_code: { Args: Record<PropertyKey, never>; Returns: string };
       reset_password_with_code: { Args: { identifier: string; code: string; new_password: string }; Returns: string | null };

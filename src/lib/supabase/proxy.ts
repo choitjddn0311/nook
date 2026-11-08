@@ -6,7 +6,7 @@ import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 // 로그인하지 않아도 열 수 있는 경로
 const PUBLIC_PATHS = ["/login", "/signup", "/recover", "/welcome", "/auth"];
 // 누구나 언제든 읽을 수 있는 문서 (로그인·승인 여부와 상관없이)
-const DOCUMENT_PATHS = ["/privacy", "/terms"];
+const DOCUMENT_PATHS = ["/privacy", "/terms", "/contact/sent"];
 // 승인 전(가입 신청 중·거절됨)인 사람이 보는 화면
 const WAITING_PATH = "/waiting";
 

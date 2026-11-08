@@ -33,3 +33,19 @@ export async function deleteAccountAsAdmin(_prev: DeleteResult, formData: FormDa
   refresh(); // 목록과 현황을 바로 다시 그린다
   return { error: null };
 }
+
+export type InquiryResult = { error: string | null };
+
+// 문의 답장 표시·되돌리기·지우기. 관리자인지는 DB 함수(admin_update_inquiry)가 확인한다.
+export async function updateInquiry(_prev: InquiryResult, formData: FormData): Promise<InquiryResult> {
+  const target = String(formData.get("target") ?? "");
+  const action = formData.get("action");
+  if (!target || (action !== "answered" && action !== "unanswered" && action !== "delete")) return { error: "잘못된 요청이에요." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_update_inquiry", { target, action });
+  if (error) return { error: "바꾸지 못했어요. 잠시 후 다시 해 주세요." };
+
+  refresh(); // 목록과 헤더 숫자를 바로 다시 그린다
+  return { error: null };
+}
