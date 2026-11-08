@@ -93,9 +93,40 @@ export type Database = {
           auth: string;
           created_at: string;
           last_sent_on: string | null;
+          last_write_sent_on: string | null;
         };
         Insert: { [_ in never]: never };
         Update: { [_ in never]: never };
+        Relationships: [];
+      };
+      // 알림 시간·글쓰기 알림 설정 (supabase/migrations/20261108060321_notification_schedule.sql). 계정마다 하나
+      notification_settings: {
+        Row: {
+          user_id: string;
+          past_enabled: boolean;
+          past_hour: number;
+          write_frequency: "off" | "daily" | "weekly";
+          write_weekday: number;
+          write_hour: number;
+          updated_at: string;
+        };
+        Insert: {
+          user_id?: string;
+          past_enabled?: boolean;
+          past_hour?: number;
+          write_frequency?: "off" | "daily" | "weekly";
+          write_weekday?: number;
+          write_hour?: number;
+          updated_at?: string;
+        };
+        Update: {
+          past_enabled?: boolean;
+          past_hour?: number;
+          write_frequency?: "off" | "daily" | "weekly";
+          write_weekday?: number;
+          write_hour?: number;
+          updated_at?: string;
+        };
         Relationships: [];
       };
       profiles: {

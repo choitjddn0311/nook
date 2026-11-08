@@ -4,12 +4,14 @@ import { ChangePasswordForm } from "@/components/change-password-form";
 import { DeleteAccount } from "@/components/delete-account";
 import { LegalLinks } from "@/components/legal-document";
 import { LogoutButton } from "@/components/logout-button";
+import { NotificationSettingsForm } from "@/components/notification-settings-form";
 import { PushToggle } from "@/components/push-toggle";
 import { RegenerateRecoveryCode } from "@/components/regenerate-recovery-code";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { ActivityCalendar, MonthlyBars, StatNumbers, TopTags } from "@/components/thinking-stats";
 import { getAccount } from "@/lib/account";
 import { fetchAll } from "@/lib/fetch-all";
+import { toNotificationSettings } from "@/lib/notification-settings";
 import { computeStats, seoulDayKey } from "@/lib/stats";
 import { createClient } from "@/lib/supabase/server";
 import { accountName } from "@/lib/username";
@@ -38,14 +40,17 @@ export default function MePage() {
 async function AccountSettings() {
   const account = await getAccount();
   if (!account) return null;
+  const supabase = await createClient();
+  const { data: settingsRow } = await supabase.from("notification_settings").select("*").maybeSingle();
   return (
     <>
       <section aria-labelledby="me-alerts" className="mt-12">
         <h2 id="me-alerts" className="text-lg leading-snug font-semibold tracking-[-0.01em] text-text">
           알림
         </h2>
-        <div className="mt-2">
+        <div className="mt-2 divide-y divide-border">
           <PushToggle />
+          <NotificationSettingsForm initial={toNotificationSettings(settingsRow)} />
         </div>
       </section>
       <section aria-labelledby="me-settings" className="mt-12">
