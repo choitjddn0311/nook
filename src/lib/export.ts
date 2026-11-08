@@ -12,9 +12,11 @@ export type ExportPost = {
   updated_at: string;
 };
 export type ExportNote = { post_id: string; content: string; created_at: string };
+// 사진은 정보만 담는다 (파일은 내보내기에 들어가지 않음)
+export type ExportImage = { post_id: string; alt: string | null; width: number; height: number; position: number; created_at: string };
 
 // 글과 덧붙인 생각을 날짜순으로 읽을 수 있게 한 파일에 모은다
-export function toMarkdown(posts: ExportPost[], notes: ExportNote[]) {
+export function toMarkdown(posts: ExportPost[], notes: ExportNote[], images: ExportImage[] = []) {
   const notesByPost = new Map<string, ExportNote[]>();
   for (const note of notes) notesByPost.set(note.post_id, [...(notesByPost.get(note.post_id) ?? []), note]);
 
@@ -23,6 +25,11 @@ export function toMarkdown(posts: ExportPost[], notes: ExportNote[]) {
     const lines = [`# ${post.title?.trim() || day}`, "", `날짜: ${day}`];
     if (post.tags.length) lines.push(`태그: ${post.tags.map((t) => `#${t}`).join(" ")}`);
     if (post.is_favorite) lines.push("즐겨찾기: 예");
+    const photos = images.filter((i) => i.post_id === post.id);
+    if (photos.length) {
+      const described = photos.map((p) => p.alt).filter(Boolean);
+      lines.push(`사진: ${photos.length}장 (파일은 내보내기에 들어가지 않아요)${described.length ? ` · ${described.join(", ")}` : ""}`);
+    }
     lines.push("", post.content);
     for (const note of notesByPost.get(post.id) ?? []) {
       lines.push("", `## ${seoulDayKey(new Date(note.created_at))}에 덧붙인 생각`, "", note.content);

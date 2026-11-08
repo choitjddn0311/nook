@@ -41,7 +41,9 @@ export function SignupRow({ signup, variant }: { signup: Signup; variant: "pendi
           ) : (
             <>
               {method} · {date} 가입 · {signup.is_admin ? "관리자" : STATUS[signup.status]} ·{" "}
-              <span className="tabular-nums">글 {signup.post_count.toLocaleString("ko-KR")}개</span>
+              <span className="tabular-nums">
+                글 {signup.post_count.toLocaleString("ko-KR")}개 · 사진 {signup.image_count.toLocaleString("ko-KR")}장
+              </span>
             </>
           )}
         </p>
@@ -108,7 +110,7 @@ function DeleteAccountButton({ signup, label }: { signup: Signup; label: string 
           {label} 계정을 지울까요?
         </h2>
         <p id={`delete-${signup.id}-desc`} className="mt-2 text-base leading-relaxed text-text-muted">
-          계정과 글 {signup.post_count.toLocaleString("ko-KR")}개, 덧붙인 생각이 바로 지워지고 되살릴 수 없어요.
+          계정과 글 {signup.post_count.toLocaleString("ko-KR")}개, 사진 {signup.image_count.toLocaleString("ko-KR")}장, 덧붙인 생각이 지워지고 되살릴 수 없어요. 사진 파일은 하루 안에 정리돼요.
         </p>
         <p role="alert" className="mt-3 text-sm font-medium empty:hidden">
           {state.error}

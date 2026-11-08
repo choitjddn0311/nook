@@ -1,5 +1,6 @@
 "use server";
 
+import { removeImageFiles } from "@/lib/post-images";
 import { createClient } from "@/lib/supabase/server";
 
 export type PasswordState = { error: string | null; done: boolean };
@@ -55,6 +56,10 @@ export async function deleteAccount(_prev: DeleteAccountState, formData: FormDat
       return fail(check.error.status === 429 ? "시도가 너무 많아요. 잠시 후 다시 해 주세요." : "비밀번호가 맞지 않아요.");
     }
   }
+
+  // 사진 파일은 계정과 함께 자동으로 지워지지 않아서 먼저 지운다 (남으면 매일 정리 함수가 지운다)
+  const { data: images } = await supabase.from("post_images").select("path");
+  await removeImageFiles((images ?? []).map((i) => i.path));
 
   const { error } = await supabase.rpc("delete_my_account");
   if (error) return fail("탈퇴하지 못했어요. 잠시 후 다시 해 주세요.");

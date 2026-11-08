@@ -34,6 +34,7 @@ async function Dashboard() {
     ["전체 계정", `${all.length.toLocaleString("ko-KR")}명`],
     ["오늘 가입", `${all.filter((s) => seoulDayKey(new Date(s.created_at)) === today).length.toLocaleString("ko-KR")}명`],
     ["전체 글", `${all.reduce((sum, s) => sum + s.post_count, 0).toLocaleString("ko-KR")}개`],
+    ["전체 사진", `${all.reduce((sum, s) => sum + s.image_count, 0).toLocaleString("ko-KR")}장`],
   ];
 
   return (
@@ -81,7 +82,7 @@ async function Dashboard() {
             </div>
           ))}
         </dl>
-        <p className="mt-2 text-sm text-text-muted">글은 개수만 보여요. 관리 화면에서는 글 내용을 볼 수 없어요.</p>
+        <p className="mt-2 text-sm text-text-muted">글과 사진은 개수만 보여요. 관리 화면에서는 글 내용과 사진을 볼 수 없어요.</p>
       </section>
 
       <section aria-labelledby="admin-accounts" className="mt-10">

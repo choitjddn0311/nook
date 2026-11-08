@@ -6,10 +6,12 @@ import { BottomBar } from "@/components/bottom-bar";
 import { DeletePostButton } from "@/components/delete-post-button";
 import { FavoriteButton } from "@/components/favorite-button";
 import { MarkdownView } from "@/components/markdown-view";
+import { PostImages } from "@/components/post-images";
 import { PostNotes } from "@/components/post-notes";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { primaryButton, secondaryButton } from "@/lib/button-styles";
 import { formatPostDate } from "@/lib/format";
+import { getPostImages } from "@/lib/post-images";
 import { getPost, getPostNotes } from "@/lib/posts";
 
 export const metadata: Metadata = { title: "글 · Nook" };
@@ -40,7 +42,7 @@ export default function PostPage({ params, searchParams }: PageProps<"/posts/[id
 }
 
 async function PostView({ id, from }: { id: string; from: From }) {
-  const [post, notes] = await Promise.all([getPost(id), getPostNotes(id)]);
+  const [post, notes, images] = await Promise.all([getPost(id), getPostNotes(id), getPostImages(id)]);
   if (!post) notFound();
 
   // 1분 넘게 지나서 고쳤으면 '고친 날'도 보여 준다
@@ -84,6 +86,8 @@ async function PostView({ id, from }: { id: string; from: From }) {
         ) : (
           <div className="mt-6 text-[17px] leading-[1.8] whitespace-pre-wrap text-text">{post.content}</div>
         )}
+
+        <PostImages images={images} />
 
         {post.tags.length > 0 && (
           <ul className="mt-8 flex flex-wrap gap-2" aria-label="태그">
