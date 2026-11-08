@@ -8,6 +8,7 @@ import { RegenerateRecoveryCode } from "@/components/regenerate-recovery-code";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { ActivityCalendar, MonthlyBars, StatNumbers, TopTags } from "@/components/thinking-stats";
 import { getAccount } from "@/lib/account";
+import { fetchAll } from "@/lib/fetch-all";
 import { computeStats, seoulDayKey } from "@/lib/stats";
 import { createClient } from "@/lib/supabase/server";
 import { accountName } from "@/lib/username";
@@ -75,9 +76,12 @@ async function AccountSettings() {
 
 async function MeContent() {
   const supabase = await createClient();
-  const [{ data: userData }, { data: posts }] = await Promise.all([
+  const [{ data: userData }, posts] = await Promise.all([
     supabase.auth.getUser(),
-    supabase.from("posts").select("created_at, tags").order("created_at", { ascending: true }),
+    // 글이 1000개를 넘어도 통계가 맞도록 전부 읽는다
+    fetchAll((from, to) =>
+      supabase.from("posts").select("created_at, tags").order("created_at", { ascending: true }).order("id").range(from, to),
+    ),
   ]);
   const user = userData.user;
   const stats = computeStats(posts ?? []);

@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Nook",
     short_name: "Nook",
-    description: "나만의 작은 구석. 개인 메모와 일기 공간.",
+    description: "오늘의 생각을 다시 만나는 곳. 짧게 정리한 생각을 한 달 뒤, 1년 뒤 같은 날에 다시 만나요.",
     lang: "ko",
     start_url: "/",
     scope: "/",

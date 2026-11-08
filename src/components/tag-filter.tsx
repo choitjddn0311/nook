@@ -1,17 +1,18 @@
 import Link from "next/link";
+import { fetchAll } from "@/lib/fetch-all";
 import { homeHref, type HomeFilters } from "@/lib/home-filters";
 import { createClient } from "@/lib/supabase/server";
 
 // 홈 위쪽의 거르기 줄: ★ 즐겨찾기 → 전체 → 내가 쓴 태그(많이 쓴 순).
-// 칩을 눌러도 검색어·정렬은 유지된다. 글이 몇천 개가 되기 전까지는 태그 칸만 모두 읽어 세는 것으로 충분하다.
+// 칩을 눌러도 검색어는 유지된다. 태그 칸만 모두 읽어(1000개씩 나눠서) 센다.
 export async function TagFilter({ filters }: { filters: HomeFilters }) {
   const active = filters.tag;
   const supabase = await createClient();
-  const { data } = await supabase.from("posts").select("tags");
+  const data = await fetchAll((from, to) => supabase.from("posts").select("tags").order("id").range(from, to));
   if (!data || data.length === 0) return null; // 글이 하나도 없으면 줄 자체를 숨김
 
   const counts = new Map<string, number>();
-  for (const row of data ?? []) for (const tag of row.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  for (const row of data) for (const tag of row.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
   const tags = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ko")).map(([t]) => t);
 
   // 지금 거르고 있는 태그가 목록에 없으면(오타 주소 등) 그래도 보여 준다

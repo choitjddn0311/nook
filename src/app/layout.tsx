@@ -7,7 +7,7 @@ import { THEME_BG, themeInitScript } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "Nook",
-  description: "나만의 작은 구석",
+  description: "오늘의 생각을 다시 만나는 곳, Nook.",
   applicationName: "Nook",
   // 아이폰 '홈 화면에 추가' 시 앱처럼(주소창 없이) 열리게
   appleWebApp: { capable: true, title: "Nook", statusBarStyle: "default" },
