@@ -45,7 +45,7 @@ flowchart LR
 flowchart LR
   CRON["pg_cron<br/>매일 KST 9시"] --> EF["Edge Function<br/>on-this-day-push"]
   EF -- "대상 조회 · 보낸 날 기록" --> DB[("DB<br/>push_targets_today<br/>push_subscriptions")]
-  EF --> PUSH["브라우저 푸시 서비스<br/>Apple · Google · Mozilla"]
+  EF --> PUSH["푸시 서비스<br/>Apple · Google<br/>Mozilla"]
   PUSH --> SW["기기의 서비스워커<br/>/sw.js"]
   SW -- "누르면" --> PAST["/past 화면"]
 ```
