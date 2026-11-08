@@ -156,6 +156,7 @@ MVP가 끝난 뒤 아래 순서로 진행한다. 이미 MVP에서 만든 부분�
 - Supabase: DB, 로그인 (지역: eu-west-1 아일랜드)
 - Markdown: react-markdown + remark-gfm + remark-breaks (HTML 무시 `skipHtml`, 위험 링크 차단 기본값, 이미지는 링크로, 글 보기는 서버에서 렌더링)
 - PWA: 홈 화면 설치 + 작성 중 오프라인 보관(자동 저장)
+- 사진: Supabase Storage 비공개 버킷 `post-images`(`<user>/<post>/<id>.webp`), 기기에서 긴 변 2000px WebP로 줄이며 위치 정보(EXIF) 제거(`src/lib/resize-image.ts`), 볼 때는 1시간 서명 주소, Vercel 이미지 최적화 안 씀
 - 배포: Vercel (Hobby) — https://nook-three-opal.vercel.app
   - `main`에 병합하면 자동 배포, PR마다 미리보기 주소가 생긴다
   - 서버 실행 지역은 Supabase와 같은 곳(`vercel.json`의 `regions: ["dub1"]`). Supabase 지역을 옮기면 여기도 같이 바꾼다
@@ -164,7 +165,8 @@ MVP가 끝난 뒤 아래 순서로 진행한다. 이미 MVP에서 만든 부분�
 ## 데이터와 보안 (중요)
 - 모든 테이블은 **RLS(Row Level Security)를 켠다.** 본인만 읽고 쓸 수 있는 정책을 둔다.
 - 글·메모는 **승인된 계정만** 읽고 쓴다 (`public.is_approved()`를 쓰는 restrictive 정책). 화면 안내(proxy → `/waiting`)는 보조일 뿐, 잠금은 DB가 한다.
-- **앱의 관리 기능으로는 다른 사람의 글을 볼 수 없다.** 관리자 기능은 계정 정보(아이디·이메일·가입 방식·상태)와 계정별 글 개수만 다루는 security definer 함수(`admin_list_signups`, `admin_set_status`, `admin_delete_account`)로만 한다. 관리자는 자기 자신과 다른 관리자를 지울 수 없다. 글은 암호화 저장이 아니므로 DB 권한이 있는 운영자는 기술적으로 읽을 수 있다. 안내 문구에 "아무도 못 본다"고 쓰지 않는다.
+- **앱의 관리 기능으로는 다른 사람의 글과 사진을 볼 수 없다.** 관리자 기능은 계정 정보(아이디·이메일·가입 방식·상태)와 계정별 글·사진 개수만 다루는 security definer 함수(`admin_list_signups`, `admin_set_status`, `admin_delete_account`)로만 한다. 관리자는 자기 자신과 다른 관리자를 지울 수 없다. 글은 암호화 저장이 아니므로 DB 권한이 있는 운영자는 기술적으로 읽을 수 있다. 안내 문구에 "아무도 못 본다"고 쓰지 않는다.
+- **사진**은 글당 10장, 계정당 200장, 파일 2MB(`add_post_image`가 확인). Storage 정책은 본인 폴더만이고 관리자 정책은 없다. Storage 파일은 SQL로 지울 수 없으므로(Supabase가 막음) 글 삭제·사진 빼기·탈퇴 때 Storage API로 바로 지우고, 남은 파일(관리자 계정 삭제 등)은 매일 KST 4:30 Edge Function `cleanup-orphan-images`가 지운다.
 - **문의하기**(랜딩 → `/contact/sent`)는 `inquiries` 표에 저장한다. 표는 직접 읽거나 쓸 수 없고 `submit_inquiry`(도배 제한)로만 넣고, 관리자는 `admin_list_inquiries`·`admin_update_inquiry`로만 본다. 답장은 운영자가 이메일로 직접, 답장 뒤 1년이 지나면 pg_cron이 자동 삭제. 안내한 답변 시간은 24시간.
 - 아이디 계정은 안에서 `<아이디>@users.nook.invalid`로 저장한다(`src/lib/username.ts`, DB 함수 `reset_password_with_code`와 도메인을 맞춘다). 화면에는 아이디만 보여 주고, 메일은 보내지 않는다(Supabase Confirm email 끔).
 - 비밀번호 복구는 복구 코드(`account_recovery`, 해시만 저장, 표는 함수로만 접근)로 한다. `reset_password_with_code`는 `auth.users`·`auth.sessions`를 직접 고치므로 공식 API가 아니다. Supabase 업데이트 뒤에도 동작하는지 확인한다.

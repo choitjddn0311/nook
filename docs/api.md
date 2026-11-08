@@ -5,9 +5,9 @@ Nook에는 다른 앱이 가져다 쓰는 공개 REST API가 없습니다. 대�
 | 층 | 수 | 누가 부르나 | 코드 |
 |---|---|---|---|
 | [HTTP 주소](#3-http-주소) | 3 | 브라우저 | `src/app/**/route.ts` |
-| [서버 동작](#4-서버-동작-server-actions) | 22 | Nook 화면 | `src/app/**/actions.ts` |
-| [데이터베이스](#5-데이터베이스) | 표 7, 함수 17 | 서버 동작, 발송 함수 | `supabase/migrations/` |
-| [Edge Function](#6-edge-function) · [예약 작업](#7-예약-작업) | 1 · 2 | DB 예약 작업 | `supabase/functions/` |
+| [서버 동작](#4-서버-동작-server-actions) | 25 | Nook 화면 | `src/app/**/actions.ts` |
+| [데이터베이스](#5-데이터베이스) | 표 8, 함수 19, Storage 버킷 1 | 서버 동작, Edge Function | `supabase/migrations/` |
+| [Edge Function](#6-edge-function) · [예약 작업](#7-예약-작업) | 2 · 3 | DB 예약 작업 | `supabase/functions/` |
 
 > 기준: `main` 브랜치, 2026-11-08. 코드를 바꾸면 같은 PR에서 이 문서도 고칩니다([9번](#9-문서-유지-규칙)).
 
@@ -64,9 +64,9 @@ Next.js는 Vercel(dub1), Supabase는 eu-west-1(아일랜드)에 있습니다.
 |---|---|---|
 | 비로그인 (`anon`) | 로그인 쿠키 없음 | 랜딩·문서 보기, 가입, 로그인, 비밀번호 복구, 문의 보내기 |
 | 승인 대기 · 거절 | `profiles.status`가 `pending` · `rejected` | `/waiting`에서 복구 코드 다시 만들기, 탈퇴, 로그아웃. **글은 읽지도 쓰지도 못함** |
-| 승인된 사용자 | `profiles.status = 'approved'` | 자기 글·덧붙인 생각·알림 구독만 읽고 쓰기 |
-| 관리자 | `profiles.is_admin = true` | 위 + 계정 승인·거절·삭제, 문의 처리. **다른 사람의 글 내용은 볼 수 없음**(개수만) |
-| `service_role` | Supabase 안의 발송 함수만 | 알림 대상 조회, 발송 기록 |
+| 승인된 사용자 | `profiles.status = 'approved'` | 자기 글·사진·덧붙인 생각·알림 구독만 읽고 쓰기 |
+| 관리자 | `profiles.is_admin = true` | 위 + 계정 승인·거절·삭제, 문의 처리. **다른 사람의 글 내용과 사진은 볼 수 없음**(개수만) |
+| `service_role` | Supabase 안의 Edge Function만 | 알림 대상 조회·발송 기록, 주인 없는 사진 파일 정리 |
 
 새 계정은 `auth.users`에 생기는 순간 트리거(`handle_new_user`)가 `profiles`를 `pending`으로 만듭니다. 관리자 지정은 앱 기능이 없고 운영자가 SQL로 직접 합니다.
 
@@ -87,9 +87,10 @@ Next.js는 Vercel(dub1), Supabase는 eu-west-1(아일랜드)에 있습니다.
 ### 진짜 잠금: 데이터베이스
 
 - **본인 행만**: 모든 사용자 표에 RLS가 켜져 있고, 정책은 `auth.uid() = user_id`입니다.
-- **승인된 사용자만**: `posts`, `post_notes`, `push_subscriptions`에 `public.is_approved()`를 쓰는 **restrictive** 정책이 겹쳐 있습니다. 다른 정책이 허용해도 승인 전이면 0건입니다.
+- **승인된 사용자만**: `posts`, `post_notes`, `post_images`, `push_subscriptions`, `notification_settings`와 Storage 사진 정책에 `public.is_approved()`를 쓰는 **restrictive** 정책이 겹쳐 있습니다. 다른 정책이 허용해도 승인 전이면 0건입니다.
 - **함수로만**: `profiles`는 읽기만, `account_recovery`와 `inquiries`는 직접 접근이 아예 없습니다. 바꾸는 일은 모두 `security definer` 함수가 호출한 사람의 권한을 확인한 뒤에 합니다.
-- **정직하게 적을 것**: 글은 암호화해 저장하지 않습니다. 앱의 관리 기능으로는 글을 볼 수 없지만, 데이터베이스 권한이 있는 운영자는 기술적으로 읽을 수 있습니다.
+- **Storage도 본인 폴더만**: 사진 파일 경로의 첫 폴더가 `auth.uid()`일 때만 올리기·보기·지우기. 관리자용 정책은 없습니다.
+- **정직하게 적을 것**: 글과 사진은 암호화해 저장하지 않습니다. 앱의 관리 기능으로는 볼 수 없지만, 데이터베이스 권한이 있는 운영자는 기술적으로 읽을 수 있습니다.
 
 ---
 
@@ -132,10 +133,16 @@ Next.js는 Vercel(dub1), Supabase는 eu-west-1(아일랜드)에 있습니다.
   ],
   "notes": [
     { "post_id": "uuid", "content": "덧붙인 생각", "created_at": "2026-11-08T00:00:00+00:00" }
+  ],
+  "images": [
+    { "post_id": "uuid", "alt": "사진 설명 또는 null", "width": 2000, "height": 1500, "position": 0,
+      "created_at": "2026-11-08T00:00:00+00:00" }
   ]
 }
 ```
-`md`는 오래된 글부터, 글마다 `# 제목`(없으면 날짜) → 날짜·태그·즐겨찾기 → 본문 → `## YYYY-MM-DD에 덧붙인 생각` 순서로 쓰고 글 사이를 `---`로 나눕니다(`src/lib/export.ts`).
+`md`는 오래된 글부터, 글마다 `# 제목`(없으면 날짜) → 날짜·태그·즐겨찾기·사진 수와 설명 → 본문 → `## YYYY-MM-DD에 덧붙인 생각` 순서로 쓰고 글 사이를 `---`로 나눕니다(`src/lib/export.ts`).
+
+**사진 파일은 내보내기에 들어가지 않습니다.** 사진 정보(설명, 크기, 순서)만 담깁니다.
 
 ### `GET /auth/callback`
 Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세션으로 바꿉니다.
@@ -179,7 +186,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | 동작 | 파일 | 입력 | 결과 |
 |---|---|---|---|
 | `savePost` | `src/app/posts/actions.ts` | `{ id, isNew, title, content, tags, format }` | `{ ok: true, id, updatedAt }` 또는 `{ ok: false, error }` |
-| `deletePost` | `src/app/posts/[id]/actions.ts` | `id` | 성공 → `/`, 실패 `{ error }` |
+| `deletePost` | `src/app/posts/[id]/actions.ts` | `id` | 성공 → `/`, 실패 `{ error }`. 사진 파일도 Storage에서 지움 |
 | `toggleFavorite` | `src/app/posts/[id]/actions.ts` | `id`, `value: boolean` | `{ ok }` |
 
 `savePost`는 자동 저장이 입력이 멈출 때마다 부릅니다.
@@ -216,7 +223,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `completeOnboarding` | 같은 파일 | 없음 | 사용법 안내를 봤다고 기록 |
 
 - 비밀번호 바꾸기와 탈퇴는 **현재 비밀번호를 다시 확인**합니다. Google 계정은 비밀번호가 없어서 탈퇴 때 확인 단계를 건너뜁니다.
-- 탈퇴하면 `delete_my_account()`가 `auth.users`의 내 행을 지우고, 글·덧붙인 생각·프로필·복구 코드·알림 구독이 함께 지워집니다(cascade). 관리자 계정은 탈퇴할 수 없습니다.
+- 탈퇴하면 먼저 내 사진 파일을 Storage에서 지우고, `delete_my_account()`가 `auth.users`의 내 행을 지웁니다. 글·사진 정보·덧붙인 생각·프로필·복구 코드·알림 구독·알림 설정이 함께 지워집니다(cascade). 관리자 계정은 탈퇴할 수 없습니다.
 
 ### 4.5 알림
 
@@ -256,6 +263,27 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 
 관리 화면 `/admin`은 관리자가 아니면 404처럼 보입니다(`src/lib/admin.ts`). 화면이 있다는 것도 드러내지 않기 위해서입니다.
 
+
+### 4.8 사진
+
+모두 `src/app/posts/[id]/image-actions.ts`에 있습니다.
+
+| 동작 | 입력 | 결과 |
+|---|---|---|
+| `uploadPostImage` | FormData: `postId`, `file`(WebP·JPEG, 2MB 이하), `width`, `height`(1~4096) | `{ ok: true, image: { id, url, width, height, alt, position } }` 또는 `{ ok: false, error }` |
+| `removePostImage` | `imageId` | `{ ok }`. 정보 행을 지운 뒤 파일을 지움 |
+| `updateImageAlt` | `imageId`, `alt`(200자까지, 비우면 null) | `{ ok }` |
+
+올리는 흐름 (`src/components/image-attachments.tsx`):
+1. 화면이 사진을 **기기에서 줄입니다**(`src/lib/resize-image.ts`): 긴 변 2000px, WebP(안 되면 JPEG), 2MB를 넘으면 더 줄임. canvas에 다시 그리므로 **찍은 위치(GPS)와 기기 정보(EXIF)가 남지 않습니다.**
+2. 새 글이면 먼저 저장합니다. 본문이 비어 있으면 `본문을 먼저 조금 적어 주세요…`
+3. 서버는 파일의 **첫 바이트로 진짜 WebP·JPEG인지** 확인하고(확장자는 믿지 않음), `<user_id>/<post_id>/<새 uuid>.webp|jpg`로 Storage에 올린 뒤 `add_post_image`로 정보를 남깁니다. 실패하면 올린 파일을 지웁니다.
+4. 화면에 보여 줄 주소는 **1시간짜리 서명 주소**입니다. Vercel 이미지 최적화는 거치지 않습니다.
+
+- 서버 동작 요청 크기는 `next.config.ts`의 `experimental.serverActions.bodySizeLimit: "3mb"`(사진 2MB + 여유)
+- 오류: 2MB 초과 / 사진 파일 아님 / `P0413` 장수 제한(`글 하나에 사진은 10장까지…`, `사진은 계정마다 200장까지…`)
+- 글 보기에서는 본문 아래, 태그 위에 놓입니다(1장은 원래 비율, 2장 이상은 2열). 글 목록에는 날짜 옆에 `사진 n`을 붙입니다(`countImagesByPost`).
+
 ---
 
 ## 5. 데이터베이스
@@ -288,6 +316,27 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `created_at` | timestamptz | |
 
 권한: 승인된 사용자가 본인 것만 읽기·지우기. 쓰기는 **내 글에만**. 고치기 없음.
+
+#### `post_images`: 글에 붙인 사진 정보
+| 칸 | 설명 |
+|---|---|
+| `id` PK | |
+| `post_id` | 글을 지우면 함께 삭제 (cascade) |
+| `user_id` | 기본값 `auth.uid()`, cascade |
+| `path` (unique) | Storage `post-images` 안의 경로 `<user_id>/<post_id>/<id>.webp\|jpg` |
+| `width` · `height` | 1~4096 |
+| `alt` | 사진 설명 (선택, 200자) |
+| `position` · `created_at` | 순서 |
+
+권한: 승인된 사용자가 본인 것만 읽기·지우기. 고치기는 `alt`·`position` 칸만(칸 단위 grant). 넣기는 `add_post_image`로만.
+행이 지워져도 **Storage 파일은 자동으로 지워지지 않습니다**(Supabase가 Storage 파일의 SQL 삭제를 막음). 그래서 서버 동작이 Storage API로 바로 지우고, 남은 파일은 매일 [정리 함수](#post-functionsv1cleanup-orphan-images)가 지웁니다.
+
+#### Storage 버킷 `post-images`
+| | |
+|---|---|
+| 공개 여부 | 비공개 (서명 주소로만 열림) |
+| 파일 하나 | 2MB까지, `image/webp` · `image/jpeg`만 |
+| 정책 | 경로의 첫 폴더가 `auth.uid()`이고 승인된 사용자일 때만 올리기(insert)·보기(select)·지우기(delete). 덮어쓰기(update)와 관리자용 정책은 없음 |
 
 #### `profiles`: 승인 상태
 | 칸 | 타입 | 설명 |
@@ -354,23 +403,25 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `delete_my_account()` | → void | authenticated | 본인 계정 삭제(cascade). 관리자는 42501 |
 | `save_push_subscription(p_endpoint, p_p256dh, p_auth)` | → void | authenticated | 승인된 사용자의 이 기기를 내 계정에 묶음. 같은 기기의 다른 계정 연결은 지움. https 주소·길이 확인 |
 | `submit_inquiry(p_email, p_message)` | → void | anon, authenticated | 문의 저장. 형식이 틀리면 22023, 같은 이메일 1시간 3건·전체 하루 200건을 넘으면 P0429 |
+| `add_post_image(p_post_id, p_path, p_width, p_height)` | → uuid | authenticated | 사진 정보 남기기. 승인된 사용자의 **내 글**인지(42501), 경로가 `<내 id>/<그 글 id>/<uuid>.webp\|jpg`인지와 Storage에 파일이 정말 있는지(22023), 글당 10장·계정당 200장(P0413)을 확인. 같은 사람의 동시 요청은 한 번에 하나씩 처리(advisory lock) |
 
 > `reset_password_with_code`는 Supabase 공식 API가 아니라 `auth.users`·`auth.sessions`를 직접 고칩니다. 비밀 키 없이 복구 코드를 쓰기 위한 선택이며, Supabase 업데이트 뒤에 동작을 다시 확인합니다.
 
 **관리자** (함수 안에서 `profiles.is_admin` 확인)
 | 함수 | 인자 → 반환 | 하는 일 |
 |---|---|---|
-| `admin_list_signups()` | → `{ id, email, provider, status, is_admin, post_count, created_at, approved_at }[]` | 계정 목록. 글은 **개수만** |
+| `admin_list_signups()` | → `{ id, email, provider, status, is_admin, post_count, image_count, created_at, approved_at }[]` | 계정 목록. 글과 사진은 **개수만** |
 | `admin_set_status(target, new_status)` | → void | `approved` · `rejected`. 자기 계정은 바꿀 수 없음 |
 | `admin_delete_account(target)` | → void | 계정 삭제(cascade). 자기 자신·다른 관리자는 거부 |
 | `admin_list_inquiries()` | → `{ id, email, message, created_at, answered_at }[]` | 문의 목록, 답장 전 먼저 |
 | `admin_update_inquiry(target, action)` | → void | `answered` · `unanswered` · `delete` |
 
-**발송 함수 전용** (`service_role`만)
+**Edge Function 전용** (`service_role`만)
 | 함수 | 반환 | 하는 일 |
 |---|---|---|
 | `push_targets(p_kind)` | `{ id, endpoint, p256dh, auth, post_count, frequency }[]` | 지금(한국 시간) 이 시각에 보낼 기기. 승인된 계정만, 같은 종류는 하루 한 번. `past`: 고른 시각이고 한 달 전·6개월 전·n년 전 같은 날 쓴 글이 있음(글은 개수만). `write`: 고른 시각·요일이고, 매일이면 오늘, 매주면 지난 7일 안에 쓴 글이 없음 |
-| `check_push_cron_secret(p_secret)` | boolean | 예약 작업이 보낸 비밀 값이 Vault의 `push_cron_secret`과 같은지 |
+| `check_push_cron_secret(p_secret)` | boolean | 예약 작업이 보낸 비밀 값이 Vault의 `push_cron_secret`과 같은지 (두 Edge Function이 함께 씀) |
+| `orphan_image_paths()` | `setof text` | 정보 행 없이 남은 사진 파일 경로. 올리는 중일 수 있어 1시간 지난 것만, 한 번에 1000개까지 |
 
 **내부용** (직접 부를 수 없음)
 | 함수 | 하는 일 |
@@ -412,6 +463,18 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 - 보낸 기기는 `last_sent_on` 또는 `last_write_sent_on`을 오늘로 기록하고, 404·410(사라진 기기)은 구독을 지웁니다.
 - 알림을 누르면 열린 Nook 창을 그 주소로 옮기거나, 없으면 새 창을 엽니다.
 
+### `POST /functions/v1/cleanup-orphan-images`
+주인 없는 사진 파일을 지웁니다. 코드: `supabase/functions/cleanup-orphan-images/index.ts`
+
+| | |
+|---|---|
+| 부르는 곳 | 예약 작업 `cleanup-orphan-images`만 (매일 KST 4:30) |
+| 인증 | 헤더 `x-cron-secret` (`check_push_cron_secret`), 틀리면 `403` |
+| 동작 | `orphan_image_paths()`로 찾은 파일을 Storage API로 100개씩 지움 |
+| 응답 | `{ "found": n, "removed": n }` |
+
+정리 대상: 관리자가 계정을 지웠을 때(행은 cascade, 파일은 남음), 탈퇴 때 파일 삭제가 실패했을 때, 올리다 멈췄을 때.
+
 ## 7. 예약 작업
 
 `pg_cron`, 시각은 UTC로 등록합니다.
@@ -420,6 +483,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 |---|---|---|---|
 | `send-notifications` | `0 * * * *` | 매시 정각 | `pg_net`으로 Edge Function 호출 (헤더에 Vault 비밀 값). 그 시각을 고른 사람에게만 보냄 |
 | `delete-old-inquiries` | `0 19 * * *` | 매일 4:00 | 답장한 지 1년이 지난 문의 삭제 |
+| `cleanup-orphan-images` | `30 19 * * *` | 매일 4:30 | `pg_net`으로 Edge Function 호출. 주인 없는 사진 파일 삭제 |
 
 ---
 
@@ -428,8 +492,9 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | 코드 | 어디서 | 뜻 | 화면 문구 예 |
 |---|---|---|---|
 | `42501` | RLS, 관리자·계정 함수 | 권한 없음 | (관리) `관리자 계정은 지울 수 없어요` 등 함수 메시지 |
-| `22023` | `reset_password_with_code`, `submit_inquiry`, `admin_set_status` | 값이 규칙에 맞지 않음 | `새 비밀번호는 8자 이상, 너무 길지 않게 써 주세요.` |
+| `22023` | `reset_password_with_code`, `submit_inquiry`, `admin_set_status`, `add_post_image` | 값이 규칙에 맞지 않음 | `새 비밀번호는 8자 이상, 너무 길지 않게 써 주세요.` |
 | `P0429` | `submit_inquiry` | 너무 많이 보냄 | `문의가 너무 많이 들어왔어요. 잠시 뒤에 다시 보내 주세요.` |
+| `P0413` | `add_post_image` | 사진 장수 제한 | `글 하나에 사진은 10장까지 붙일 수 있어요` / `사진은 계정마다 200장까지 올릴 수 있어요` |
 | `P0001` | `save_push_subscription`, 문의 관리자 함수 | 승인 전·관리자 아님·잘못된 값 | `알림을 켜지 못했어요…` / `바꾸지 못했어요…` |
 | `23505` | `posts` insert | 같은 id가 이미 있음 | 화면에 안 보임. 자동 저장이 고치기로 넘어감 |
 | HTTP `429` | Supabase Auth | 로그인·가입 시도가 너무 많음 | `시도가 너무 많아요. 잠시 후 다시 해 주세요.` |
