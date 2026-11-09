@@ -234,7 +234,8 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `deletePushSubscription` | 같은 파일 | `endpoint` | 없음 (RLS로 내 것만 지워짐) |
 | `isMyPushSubscription` | 같은 파일 | `endpoint` | `boolean` |
 
-- 알림 켜기는 화면(`src/components/push-toggle.tsx`)이 서비스워커 `/sw.js`를 등록하고, 권한을 묻고, 구독을 만든 뒤 이 동작을 부릅니다.
+- 알림 켜기는 화면이 서비스워커 `/sw.js`를 등록하고, 권한을 묻고, 구독을 만든 뒤 `savePushSubscription`을 부릅니다(`enablePushOnThisDevice`, `src/lib/push.ts`). 마이페이지 켜기 버튼(`push-toggle.tsx`)과 안내 창(`push-prompt.tsx`)이 함께 씁니다.
+- **안내 창**: 글을 쓰고 '완료'로 글 보기에 왔을 때 "1년 뒤 오늘, 이 글을 다시 알려 드릴까요?"를 띄웁니다. 이 기기에서 웹 푸시가 되고, 권한을 아직 묻지 않았고, 구독이 없을 때만. '나중에'(Esc 포함)는 7일 뒤 한 번 더 묻고 두 번이면 끝(기기의 `localStorage` `nook-push-prompt`). 브라우저 권한 창은 '알림 켜기'를 누를 때만 뜹니다.
 - 같은 기기를 다른 계정이 썼을 수 있어서, 화면은 "켜져 있음"을 보여 주기 전에 `isMyPushSubscription`으로 서버에 묻습니다.
 - 공개 키는 `src/lib/push.ts`에 있습니다. 개인 키는 Supabase 비밀 값에만 있습니다.
 - **기기**(받을지)와 **설정**(무엇을 언제)은 나뉩니다. 기기는 기기마다 켜고(`push_subscriptions`), 설정은 계정마다 하나(`notification_settings`)로 켜 둔 모든 기기에 적용됩니다.
