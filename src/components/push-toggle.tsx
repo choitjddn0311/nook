@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { deletePushSubscription, isMyPushSubscription, savePushSubscription } from "@/app/me/push-actions";
+import { deletePushSubscription, isMyPushSubscription } from "@/app/me/push-actions";
 import { quietButton, secondaryButton } from "@/lib/button-styles";
-import { base64UrlToBytes, getDeviceSubscription, VAPID_PUBLIC_KEY } from "@/lib/push";
+import { enablePushOnThisDevice, getDeviceSubscription, supportsPush } from "@/lib/push";
 
 type State = "checking" | "install" | "unsupported" | "denied" | "off" | "on";
 
@@ -13,10 +13,6 @@ const NOTE: Partial<Record<State, string>> = {
   denied: "알림이 막혀 있어요. 브라우저나 기기 설정에서 Nook 알림을 허용하면 켤 수 있어요.",
   on: "이 기기에서 켜져 있어요.",
 };
-
-function supported() {
-  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
-}
 
 // 이 기기에서 알림 받기 켜기/끄기 (마이페이지). 기기마다 따로 켠다. 무슨 알림을 언제 받을지는 NotificationSettingsForm(계정 단위)
 // 권한은 '켜기'를 누를 때만 묻는다.
@@ -29,7 +25,7 @@ export function PushToggle() {
     let cancelled = false;
     (async () => {
       let next: State;
-      if (!supported()) {
+      if (!supportsPush()) {
         // 아이폰은 홈 화면 앱(standalone)에서만 웹 푸시가 된다
         next = window.matchMedia("(display-mode: standalone)").matches ? "unsupported" : "install";
       } else if (Notification.permission === "denied") {
@@ -48,33 +44,12 @@ export function PushToggle() {
   async function turnOn() {
     setBusy(true);
     setError(null);
-    try {
-      const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-      await navigator.serviceWorker.ready;
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setState(permission === "denied" ? "denied" : "off");
-        return;
-      }
-      // 이전 키로 만든 구독이 남아 있으면 새로 만든다
-      await (await registration.pushManager.getSubscription())?.unsubscribe();
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: base64UrlToBytes(VAPID_PUBLIC_KEY),
-      });
-      const keys = subscription.toJSON().keys ?? {};
-      const result = await savePushSubscription({ endpoint: subscription.endpoint, p256dh: keys.p256dh ?? "", auth: keys.auth ?? "" });
-      if (result.error) {
-        await subscription.unsubscribe();
-        setError(result.error);
-        return;
-      }
-      setState("on");
-    } catch {
-      setError("알림을 켜지 못했어요. 잠시 뒤에 다시 해 주세요.");
-    } finally {
-      setBusy(false);
-    }
+    const result = await enablePushOnThisDevice();
+    if (result === "on") setState("on");
+    else if (result === "denied") setState("denied");
+    else if (result === "dismissed") setState("off");
+    else setError(result.error);
+    setBusy(false);
   }
 
   async function turnOff() {

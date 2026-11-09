@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BottomBar } from "@/components/bottom-bar";
 import { ImageAttachments } from "@/components/image-attachments";
+import { JUST_WROTE_KEY } from "@/components/push-prompt";
 import { TagInput } from "@/components/tag-input";
 import { createAutosaver, type SaveStatus } from "@/lib/autosaver";
 import { clearDraft, readDraft, sameValue, setDraftOwner } from "@/lib/drafts";
@@ -173,6 +174,14 @@ export function PostEditor({ initial, userId }: Props) {
       return;
     }
     if (!saver.id) saver.discard(); // 본문 없이 끝낸 새 글: 기기 임시본도 남기지 않는다
+    if (saver.id) {
+      // 글 보기에서 알림 안내 창을 한 번 띄울 수 있게 표시 (push-prompt.tsx)
+      try {
+        sessionStorage.setItem(JUST_WROTE_KEY, "1");
+      } catch {
+        // 저장이 막혀 있으면 안내 창만 안 뜬다
+      }
+    }
     router.push(saver.id ? `/posts/${saver.id}` : "/");
   }
 

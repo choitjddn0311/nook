@@ -8,6 +8,7 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { MarkdownView } from "@/components/markdown-view";
 import { PostImages } from "@/components/post-images";
 import { PostNotes } from "@/components/post-notes";
+import { PushPrompt } from "@/components/push-prompt";
 import { SkeletonBar, SkeletonGroup } from "@/components/skeleton";
 import { primaryButton, secondaryButton } from "@/lib/button-styles";
 import { formatPostDate } from "@/lib/format";
@@ -108,6 +109,9 @@ async function PostView({ id, from }: { id: string; from: From }) {
         {/* 원래 글은 그대로, 아래에 날짜별로 지금의 생각을 덧붙인다 */}
         <PostNotes postId={post.id} initialNotes={notes} />
       </article>
+
+      {/* 글을 쓰고 '완료'로 왔을 때 한 번: 알림을 켤지 묻는다 */}
+      <PushPrompt />
 
       {/* 하단 고정: 지우기 / (다른 글) 고치기 */}
       <BottomBar className="flex items-center justify-between gap-2">
