@@ -26,7 +26,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     return { error: message, login };
   }
 
-  // 아직 승인되지 않은 계정은 곧장 기다리는 화면으로 (주소창도 /waiting 이 되도록 여기서 정한다)
-  const { data: profile } = await supabase.from("profiles").select("status").eq("id", data.user.id).maybeSingle();
-  redirect(profile?.status === "approved" ? "/" : "/waiting");
+  // 아직 승인되지 않은 계정은 곧장 기다리는 화면으로, 관리자는 대시보드로 (주소창도 맞도록 여기서 정한다)
+  const { data: profile } = await supabase.from("profiles").select("status, is_admin").eq("id", data.user.id).maybeSingle();
+  redirect(profile?.status !== "approved" ? "/waiting" : profile.is_admin ? "/admin" : "/");
 }
