@@ -1,7 +1,7 @@
 # Nook 인수인계 (HANDOFF)
 
 > 지금 상태를 한 곳에. 주요 단계가 끝날 때마다 고친다(`docs/development/CONTEXT_GUIDE.md`).
-> 기준: 2026-11-11, main cdcafa4 (PR #45까지 병합)
+> 기준: 2026-11-11, main 57d3f59 (PR #48까지 병합)
 
 ## 1. 목적과 구조
 - **Nook**: "오늘의 생각을 다시 만나는 곳". 짧게 정리한 생각을 한 달·6개월·1년 뒤 같은 날 다시 만나게 하는 개인 기록장(일기·메모). 원래 1인용 → 지금은 가입 신청 + 관리자 승인으로 여러 사람이 각자 공간으로 쓰는 구조(3차 공개 준비).
@@ -10,7 +10,7 @@
   - `src/app/` 화면(App Router): `/` (로그인 전 랜딩 `/welcome`을 rewrite, 로그인 후 내 글), `/write`, `/posts/[id]`(+`/edit`), `/past`, `/random`, `/me`(+`/me/export`), `/admin`, `/waiting`, `/login` `/signup` `/recover` `/auth/callback`, `/privacy` `/terms` `/contact/sent`
   - `src/proxy.ts` → `src/lib/supabase/proxy.ts`: 로그인·승인 안내(잠금은 DB가 함)
   - `src/lib/` 공용 로직, `src/components/` 화면 조각
-  - `supabase/migrations/` (14개, 파일 이름 = 실제 적용 번호), `supabase/functions/` Edge Function 2개(`send-notifications`, `cleanup-orphan-images`)
+  - `supabase/migrations/` (15개, 파일 이름 = 실제 적용 번호), `supabase/functions/` Edge Function 2개(`send-notifications`, `cleanup-orphan-images`)
   - 문서: `CLAUDE.md`(개요·핵심 규칙, 45줄), 필요할 때만 `docs/design.md`(디자인·접근성), `docs/architecture.md`(스택·데이터·보안), `docs/api.md`(API 명세서), `docs/roadmap.md`(단계·남은 과제) — PR #45에서 분리
 
 ## 2. 기술 스택
@@ -21,7 +21,7 @@
 - Markdown: react-markdown + remark-gfm + remark-breaks, 폰트 Pretendard 하나
 - 도구: Playwright MCP(화면 시험), Supabase MCP(SQL·마이그레이션), Context7(문서), Supabase CLI(`npx supabase@latest`, 터미널에서 로그인 필요, 변경은 `--yes`)
 
-## 3. 구현 완료 기능 (1~21단계 + 21.5 일부, PR #1~#45)
+## 3. 구현 완료 기능 (1~21단계 + 21.5 일부, PR #1~#48)
 - 글: 제목 선택·본문, 자동 저장(+오프라인 기기 임시본), 일반/Markdown, 태그, 즐겨찾기, 검색, 글자 수
 - 다시 보기: 지난 생각(한 달·6개월·n년 전 오늘), 아무 글 보기, 덧붙인 생각(원글은 그대로)
 - 마이페이지: 생각 통계(활동 달력·월별·태그), 계정 관리(비밀번호, 복구 코드, 내보내기 md/json, 탈퇴), **알림**
@@ -31,10 +31,11 @@
 - 처리방침·약관(동의 버전 기록), 링크 미리보기(`public/og.png`), SEO(robots, sitemap, Google Search Console HTML 파일 확인 `public/googlecbde0de40ebe2e84.html`)
 - **알림(웹 푸시)**: 지난 오늘 알림 + 글쓰기 알림(매일/매주), 시각 1시간 단위 사용자 지정(`notification_settings`, 기본 지난 오늘 9시·글쓰기 꺼짐), 매시 정각 cron → `send-notifications`. 기기마다 켜기, 로그아웃 때 연결 삭제. **글 완료 뒤 안내 창**(#44, 나중에 → 7일 뒤 1회, 2번이면 끝)
 - **사진 첨부**(#42): 글당 10장·계정당 200장·2MB, 기기에서 2000px WebP로 줄이며 EXIF(위치) 제거, 비공개 버킷 `post-images` + 1시간 서명 주소, 설명(alt) 선택, 글 삭제·사진 빼기·탈퇴 때 파일 바로 삭제, 남은 파일은 매일 KST 4:30 `cleanup-orphan-images`
-- API 명세서 `docs/api.md` (서버 동작 25, DB 함수 19, 표 8, Edge Function 2, 예약 작업 3)
+- API 명세서 `docs/api.md` (서버 동작 25, DB 함수 20, 표 8, Edge Function 2, 예약 작업 3)
+- **속도 개선**(#47, #48): proxy(Vercel 서울 `icn1`)가 매 요청 아일랜드 DB에 승인 여부를 묻던 것(0.3~0.9초)을 토큰 claim `account_status`로 대체(DB 훅 `custom_access_token_hook`, 대시보드 Authentication → Hooks에서 켬. 문제 생기면 끄면 원래대로). 목록 미리보기는 서버에서 200자로 자름, `getAccount`는 React `cache()`로 요청당 한 번
 
 ## 4. 현재 진행 중
-- 없음. 모든 작업 병합됨(마지막 #45: CLAUDE.md 분리, 컨텍스트 관리 규칙과 이 문서)
+- 없음. 모든 작업 병합됨(마지막 #48)
 
 ## 5. 설계 결정과 규칙 (핵심은 CLAUDE.md, 세부는 docs/*.md)
 - 작업 흐름: 브랜치 → PR → 검증 → **사용자가 "병합"이라고 해야** 병합. DB 구조 변경은 **SQL을 먼저 보여 주고 확인**. 큰 작업은 계획 먼저. 설명은 한국어, 쉽게
@@ -48,6 +49,8 @@
 
 ## 6. 해결되지 않은 문제 / 미확인
 - 실제 폰에서 아직 안 해 본 것: 안내 창에서 '알림 켜기' → 권한 → 구독
+- 속도 개선(#47) 뒤 실제 사이트 체감 속도 미확인(로그인 상태)
+- 승인 → 거절로 바뀐 계정은 토큰이 새로 발급될 때까지(최대 1시간) `/waiting` 안내가 늦음(데이터는 RLS가 바로 막음)
 - (해결, 2026-11-11) Mac PC Chrome 푸시 알림 도착 확인 → 아이폰·안드로이드·Mac 모두 정상. 아이폰 사진 올리기도 실기기에서 정상
 - `cleanup-orphan-images`가 실제 고아 파일을 지우는 것(1시간 지난 파일만 대상이라 미시험)
 - Supabase **Allow new users to sign up이 켜져 있음**(실제 사람들이 가입·승인돼 있음). 출시 전이라 끌지 사용자 결정 대기
@@ -59,5 +62,6 @@
 1. 폰에서 알림 안내 창('알림 켜기' → 구독) 실제 확인 결과 받기, 문제 있으면 수정
 2. 21.5 법·운영 과제 (대부분 사용자 결정) — docs/roadmap.md 21.5 표
 3. 선택: 사용법 다시 보기, 카카오 로그인(보류), 사진 묶음 내보내기(zip)
+   - 속도 남은 후보(가입 열기 전): 관리자 헤더 숫자를 개수만 돌려주는 DB 함수로(지금은 가입·문의 목록 전체를 읽음). 기본 지연(한국 ↔ 더블린 화면 서버)은 Supabase 서울 이전 말고는 못 줄임 → 보류
 4. 도메인 구입(사용자 결정: 가장 마지막) → `src/lib/site.ts` SITE_URL, Supabase·Google 주소, Search Console 재등록, 알림 다시 켜기
 5. 22단계: 두 계정 교차 점검 → 가입 켜기 → 1.1.0 릴리스 (출시는 사용자가 "아직"이라고 보류)
