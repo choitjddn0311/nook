@@ -17,7 +17,7 @@
 
 ## 코드 위치
 - 화면: `src/app/` (App Router). 로그인 전 `/`는 proxy가 `/welcome`(랜딩)을 보여 준다
-- 로그인·승인 안내: `src/proxy.ts` → `src/lib/supabase/proxy.ts` (잠금은 DB가 한다). 승인 여부는 토큰의 `account_status`(DB 훅 `custom_access_token_hook`)로 보고, 승인 전일 때만 DB를 묻는다
+- 로그인·승인 안내: `src/proxy.ts` → `src/lib/supabase/proxy.ts` (잠금은 DB가 한다). 승인 여부는 토큰의 `account_status`(DB 훅 `custom_access_token_hook`)로 보고, 승인 전일 때만 DB를 묻는다. 관리자 계정은 대시보드 전용(토큰의 `is_admin` → `/admin`만, 내 계정 관리도 그 화면에서)
 - 공용 로직 `src/lib/`, 화면 조각 `src/components/`
 - DB: `supabase/migrations/` (MCP로 적용한 뒤 파일 이름을 실제 적용 번호로 바꾼다)
 - Edge Function: `supabase/functions/send-notifications`(알림), `supabase/functions/cleanup-orphan-images`(사진 정리). 배포는 Supabase CLI(`npx supabase@latest functions deploy … --yes`)

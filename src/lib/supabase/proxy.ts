@@ -9,6 +9,8 @@ const PUBLIC_PATHS = ["/login", "/signup", "/recover", "/welcome", "/auth"];
 const DOCUMENT_PATHS = ["/privacy", "/terms", "/contact/sent"];
 // 승인 전(가입 신청 중·거절됨)인 사람이 보는 화면
 const WAITING_PATH = "/waiting";
+// 관리자 계정은 대시보드 전용: 내 계정 관리까지 /admin 한 화면에서 한다. 나머지 화면은 /admin 으로 보낸다
+const ADMIN_PATHS = ["/admin"];
 
 // 모든 요청 전에 실행된다 (src/proxy.ts).
 // 1) 로그인 토큰이 만료돼 가면 새로 발급해서 쿠키에 다시 쓴다 → 로그인이 계속 유지된다.
@@ -64,6 +66,9 @@ export async function updateSession(request: NextRequest) {
     }
     const onWaiting = pathname === WAITING_PATH;
     if (!approved && !onWaiting) return redirectKeepingCookies(request, response, WAITING_PATH);
+    if (approved && data?.claims?.is_admin === true && !ADMIN_PATHS.includes(pathname)) {
+      return redirectKeepingCookies(request, response, "/admin");
+    }
     if (approved && onWaiting) return redirectKeepingCookies(request, response, "/");
   }
 

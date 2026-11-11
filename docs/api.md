@@ -74,15 +74,18 @@ Next.js는 Vercel(dub1), Supabase는 eu-west-1(아일랜드)에 있습니다.
 
 모든 요청 앞에서 로그인 토큰을 갱신하고 경로를 안내합니다. **안내일 뿐 잠금이 아닙니다.** 잠금은 DB가 합니다.
 
-승인 여부는 토큰의 `account_status` 값(`custom_access_token_hook`이 넣음)으로 먼저 봅니다. proxy는 서울에서 돌아서 아일랜드 DB를 묻는 데 0.3초 넘게 걸리기 때문입니다. 값이 `approved`가 아닐 때만 `profiles.status`를 읽고, 방금 승인됐으면 토큰을 새로 받습니다. 그래서 승인 뒤 **거절**로 바뀐 계정은 토큰이 새로 발급될 때까지(최대 1시간) 화면 안내가 늦을 수 있습니다. 데이터는 RLS가 바로 막습니다.
+승인 여부는 토큰의 `account_status` 값, 관리자 여부는 `is_admin` 값(둘 다 `custom_access_token_hook`이 넣음)으로 봅니다. proxy는 서울에서 돌아서 아일랜드 DB를 묻는 데 0.3초 넘게 걸리기 때문입니다. 값이 `approved`가 아닐 때만 `profiles.status`를 읽고, 방금 승인됐으면 토큰을 새로 받습니다. 그래서 승인 뒤 **거절**로 바뀐 계정은 토큰이 새로 발급될 때까지(최대 1시간) 화면 안내가 늦을 수 있습니다. 데이터는 RLS가 바로 막습니다.
 
-| 경로 | 비로그인 | 로그인 · 승인 전 | 로그인 · 승인됨 |
-|---|---|---|---|
-| `/` | 랜딩을 보여 줌(주소는 `/` 그대로) | → `/waiting` | 내 글 목록 |
-| `/login` `/signup` `/recover` `/welcome` `/auth/*` | 열림 | → `/` | → `/` |
-| `/privacy` `/terms` `/contact/sent` | 열림 | 열림 | 열림 |
-| `/waiting` | → `/` | 열림 | → `/` |
-| 그 밖의 화면 | → `/` | → `/waiting` | 열림 |
+| 경로 | 비로그인 | 로그인 · 승인 전 | 로그인 · 승인됨 | 관리자 |
+|---|---|---|---|---|
+| `/` | 랜딩을 보여 줌(주소는 `/` 그대로) | → `/waiting` | 내 글 목록 | → `/admin` |
+| `/login` `/signup` `/recover` `/welcome` `/auth/*` | 열림 | → `/` | → `/` | → `/` → `/admin` |
+| `/privacy` `/terms` `/contact/sent` | 열림 | 열림 | 열림 | 열림 |
+| `/waiting` | → `/` | 열림 | → `/` | → `/admin` |
+| `/admin` | → `/` | → `/waiting` | 404 | 열림 |
+| 그 밖의 화면(`/me` 포함) | → `/` | → `/waiting` | 열림 | → `/admin` |
+
+관리자 계정은 **대시보드 전용**입니다. 글을 쓰지 않고 `/me`도 없으며, 비밀번호·복구 코드·로그아웃까지 `/admin` 한 화면에서 합니다. 헤더에는 링크가 없습니다. 화면 안내일 뿐 DB에서 글쓰기를 막지는 않습니다(운영자 본인 계정).
 
 확장자가 있는 파일(`/og.png`, `/sw.js`, `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest`)과 앱 아이콘(`/icon/*`, `/apple-icon`)은 proxy를 거치지 않습니다.
 
@@ -172,7 +175,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 
 | 동작 | 파일 | 입력 | 성공 | 오류 |
 |---|---|---|---|---|
-| `loginAction` | `src/app/login/actions.ts` | `login`(아이디 또는 이메일), `password` | 승인됨 → `/`, 아니면 → `/waiting` | 빈 칸 / `아이디 또는 비밀번호가 맞지 않아요.`(어느 칸이 틀렸는지 알리지 않음) / 429 `시도가 너무 많아요…` |
+| `loginAction` | `src/app/login/actions.ts` | `login`(아이디 또는 이메일), `password` | 관리자 → `/admin`, 승인됨 → `/`, 아니면 → `/waiting` | 빈 칸 / `아이디 또는 비밀번호가 맞지 않아요.`(어느 칸이 틀렸는지 알리지 않음) / 429 `시도가 너무 많아요…` |
 | `signup` | `src/app/signup/actions.ts` | `username`, `password`, `confirm`, `agree=on` | 가입과 동시에 로그인 → `{ code }`(복구 코드, 한 번만 보여 줌). 코드를 못 만들면 → `/waiting` | 아이디 규칙 / 8자 미만 / 확인 불일치 / 동의 안 함 / `signup_disabled` / `user_already_exists` / `weak_password` / 429 |
 | `recover` | `src/app/recover/actions.ts` | `login`, `code`(복구 코드), `password`, `confirm` | `{ code }`(새 복구 코드) | 빈 칸 / 8자 미만 / 불일치 / 22023 / 그 밖의 실패는 모두 `아이디 또는 복구 코드가 맞지 않아요. 5번 틀리면 1시간 동안 잠겨요.`(없는 계정·틀린 코드·잠김을 구분하지 않음) |
 | `signInWithProvider` | `src/app/auth/actions.ts` | `provider`: `"google"` | Google 로그인 화면으로 → 돌아오는 곳 `/auth/callback` | → `/login?error=oauth` |
@@ -349,7 +352,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `is_admin` | boolean | |
 | `created_at` · `approved_at` · `onboarded_at` | timestamptz | `onboarded_at`: 사용법 안내를 본 때 |
 
-권한: 본인 행 **읽기만**. 상태는 관리자 함수로만 바뀝니다. 토큰 발급 훅(`supabase_auth_admin`)은 `id`·`status` 칸만 읽을 수 있습니다.
+권한: 본인 행 **읽기만**. 상태는 관리자 함수로만 바뀝니다. 토큰 발급 훅(`supabase_auth_admin`)은 `id`·`status`·`is_admin` 칸만 읽을 수 있습니다.
 
 #### `account_recovery`: 복구 코드
 | 칸 | 설명 |
@@ -432,7 +435,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `handle_new_user()` | `auth.users`에 새 계정이 생기면 `profiles`를 `pending`으로 만드는 트리거 |
 | `set_updated_at()` | `posts`의 `updated_at` 트리거 |
 | `issue_recovery_code(target)` | 복구 코드를 만들어 해시만 저장. 위 두 복구 함수만 씀 |
-| `custom_access_token_hook(event)` | Supabase Auth가 토큰을 발급할 때 부름(`supabase_auth_admin`만, security definer 아님). `profiles.status`를 `account_status` claim으로 넣음(없으면 `pending`). 대시보드 Authentication → Hooks에서 켬 |
+| `custom_access_token_hook(event)` | Supabase Auth가 토큰을 발급할 때 부름(`supabase_auth_admin`만, security definer 아님). `profiles.status`를 `account_status`, `profiles.is_admin`을 `is_admin` claim으로 넣음(없으면 `pending` · `false`). 대시보드 Authentication → Hooks에서 켬 |
 
 날짜 규칙: "n개월 전 같은 날"은 그 달에 그날이 없으면 그 달의 마지막 날입니다(3월 31일의 한 달 전 → 2월 28일 또는 29일). 화면(`src/lib/on-this-day.ts`)과 DB(`push_targets`)가 같은 규칙을 씁니다.
 
