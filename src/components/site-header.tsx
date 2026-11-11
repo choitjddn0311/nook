@@ -4,7 +4,6 @@ import { NavLink } from "@/components/nav-link";
 import { NookLogo } from "@/components/nook-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getAccount } from "@/lib/account";
-import { createClient } from "@/lib/supabase/server";
 
 export function SiteHeader() {
   return (
@@ -27,15 +26,14 @@ export function SiteHeader() {
   );
 }
 
-// 승인된 계정에만 보이는 헤더 링크: (관리) · 지난 생각 · 나(마이페이지). 로그아웃은 마이페이지 맨 아래.
-// 승인 대기 중인 계정은 갈 수 있는 곳이 없으므로 링크를 보여 주지 않는다.
+// 승인된 계정에만 보이는 헤더 링크: 지난 생각 · 나(마이페이지). 로그아웃은 마이페이지 맨 아래.
+// 승인 대기 중인 계정은 갈 수 있는 곳이 없고, 관리자 계정은 대시보드 한 화면만 쓰므로 링크를 보여 주지 않는다.
 async function SignedInLinks() {
   const account = await getAccount();
-  if (account?.status !== "approved") return null;
+  if (account?.status !== "approved" || account.isAdmin) return null;
 
   return (
     <>
-      {account.isAdmin && <AdminLink />}
       <NavLink href="/past" tour="past">
         지난 생각
       </NavLink>
@@ -43,23 +41,5 @@ async function SignedInLinks() {
         나
       </NavLink>
     </>
-  );
-}
-
-// 관리자에게만: '관리' 링크 + 처리할 일 수(승인 대기 + 답장 전 문의, 있을 때만 숫자)
-async function AdminLink() {
-  const supabase = await createClient();
-  const [{ data: signups }, { data: inquiries }] = await Promise.all([
-    supabase.rpc("admin_list_signups"),
-    supabase.rpc("admin_list_inquiries"),
-  ]);
-  const pending = (signups ?? []).filter((s) => s.status === "pending").length;
-  const unanswered = (inquiries ?? []).filter((i) => i.answered_at === null).length;
-  const todo = pending + unanswered;
-  const label = [pending > 0 && `승인 대기 ${pending}명`, unanswered > 0 && `답장 전 문의 ${unanswered}건`].filter(Boolean).join(", ");
-  return (
-    <NavLink href="/admin" label={todo > 0 ? `관리, ${label}` : "관리"}>
-      관리{todo > 0 && <span className="ml-1 tabular-nums">{todo}</span>}
-    </NavLink>
   );
 }
