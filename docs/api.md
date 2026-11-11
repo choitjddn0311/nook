@@ -82,10 +82,10 @@ Next.js는 Vercel(dub1), Supabase는 eu-west-1(아일랜드)에 있습니다.
 | `/login` `/signup` `/recover` `/welcome` `/auth/*` | 열림 | → `/` | → `/` | → `/` → `/admin` |
 | `/privacy` `/terms` `/contact/sent` | 열림 | 열림 | 열림 | 열림 |
 | `/waiting` | → `/` | 열림 | → `/` | → `/admin` |
-| `/admin` | → `/` | → `/waiting` | 404 | 열림 |
+| `/admin` `/admin/*` | → `/` | → `/waiting` | 404 | 열림 |
 | 그 밖의 화면(`/me` 포함) | → `/` | → `/waiting` | 열림 | → `/admin` |
 
-관리자 계정은 **대시보드 전용**입니다. 글을 쓰지 않고 `/me`도 없으며, 비밀번호·복구 코드·로그아웃까지 `/admin` 한 화면에서 합니다. 헤더에는 링크가 없습니다. 화면 안내일 뿐 DB에서 글쓰기를 막지는 않습니다(운영자 본인 계정).
+관리자 계정은 **대시보드 전용**입니다. 글을 쓰지 않고 `/me`도 없습니다. 관리 화면은 일반 헤더 대신 자기 메뉴(PC 사이드바, 폰 아래 탭)를 씁니다: `/admin` 개요 · `/admin/signups` 승인 대기 · `/admin/inquiries` 문의 · `/admin/accounts` 계정 · `/admin/me` 내 계정(비밀번호·복구 코드·로그아웃). 화면 안내일 뿐 DB에서 글쓰기를 막지는 않습니다(운영자 본인 계정).
 
 확장자가 있는 파일(`/og.png`, `/sw.js`, `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest`)과 앱 아이콘(`/icon/*`, `/apple-icon`)은 proxy를 거치지 않습니다.
 
@@ -259,7 +259,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 
 ### 4.7 관리
 
-모두 `src/app/admin/actions.ts`에 있습니다. 관리자인지는 **DB 함수가 직접** 확인하고, 성공하면 `refresh()`로 목록과 헤더 숫자를 다시 그립니다.
+모두 `src/app/admin/actions.ts`에 있습니다. 관리자인지는 **DB 함수가 직접** 확인하고, 성공하면 `refresh()`로 목록과 메뉴의 숫자 배지를 다시 그립니다.
 
 | 동작 | 입력 | 부르는 DB 함수 |
 |---|---|---|
@@ -267,7 +267,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `deleteAccountAsAdmin` | `target` | `admin_delete_account` |
 | `updateInquiry` | `target`(문의 id), `action`: `answered` · `unanswered` · `delete` | `admin_update_inquiry` |
 
-관리 화면 `/admin`은 관리자가 아니면 404처럼 보입니다(`src/lib/admin.ts`). 화면이 있다는 것도 드러내지 않기 위해서입니다.
+관리 화면 `/admin`과 그 아래 화면은 관리자가 아니면 404처럼 보입니다(`src/app/admin/layout.tsx`, `src/lib/admin.ts`). 화면이 있다는 것도 드러내지 않기 위해서입니다.
 
 
 ### 4.8 사진

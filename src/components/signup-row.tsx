@@ -16,6 +16,11 @@ const dateFormat = new Intl.DateTimeFormat("ko-KR", {
   day: "numeric",
 });
 
+// PC(lg)에서 계정 목록을 표처럼: 계정 · 상태 · 글 · 사진 · 가입일 · 버튼. 머리줄(account-list)과 같은 칸을 쓴다.
+export const accountColumns = "lg:grid lg:grid-cols-[minmax(0,1fr)_6rem_4rem_4rem_8rem_13rem] lg:items-center lg:gap-4";
+
+const shortDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
+
 export function signupLabel(signup: Signup) {
   return accountName(signup.email) ?? "(이메일 없음)";
 }
@@ -29,18 +34,22 @@ export function SignupRow({ signup, variant }: { signup: Signup; variant: "pendi
   const method = isUsernameAccount(signup.email) ? "아이디" : (PROVIDER[signup.provider] ?? signup.provider);
   const date = dateFormat.format(new Date(signup.created_at));
 
+  const isAccount = variant === "account";
+  const status = signup.is_admin ? "관리자" : STATUS[signup.status];
+
   return (
-    <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <li className={`flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between ${isAccount ? `${accountColumns} lg:py-3` : ""}`}>
       <div className="min-w-0">
         <p className="truncate text-base text-text">{label}</p>
-        <p className="mt-0.5 text-sm text-text-muted">
+        {isAccount && <p className="mt-0.5 hidden text-sm text-text-muted lg:block">{method}</p>}
+        <p className={`mt-0.5 text-sm text-text-muted ${isAccount ? "lg:hidden" : ""}`}>
           {variant === "pending" ? (
             <>
               {method} · {date} 신청
             </>
           ) : (
             <>
-              {method} · {date} 가입 · {signup.is_admin ? "관리자" : STATUS[signup.status]} ·{" "}
+              {status} · {method} · {date} 가입 ·{" "}
               <span className="tabular-nums">
                 글 {signup.post_count.toLocaleString("ko-KR")}개 · 사진 {signup.image_count.toLocaleString("ko-KR")}장
               </span>
@@ -53,8 +62,31 @@ export function SignupRow({ signup, variant }: { signup: Signup; variant: "pendi
           </p>
         )}
       </div>
-      {!signup.is_admin && (
-        <div className="flex shrink-0 items-center gap-2">
+      {/* PC 표 칸 (폰에서는 위의 한 줄 설명으로 보인다) */}
+      {isAccount && (
+        <>
+          <p className="hidden text-[15px] text-text lg:block">
+            <StatusDot status={signup.is_admin ? "approved" : signup.status} />
+            {status}
+          </p>
+          <p className="hidden text-right text-[15px] text-text tabular-nums lg:block">
+            <span className="sr-only">글 </span>
+            {signup.post_count.toLocaleString("ko-KR")}
+          </p>
+          <p className="hidden text-right text-[15px] text-text tabular-nums lg:block">
+            <span className="sr-only">사진 </span>
+            {signup.image_count.toLocaleString("ko-KR")}
+          </p>
+          <p className="hidden text-[15px] text-text-muted tabular-nums lg:block">
+            <span className="sr-only">가입 </span>
+            {shortDate.format(new Date(signup.created_at))}
+          </p>
+        </>
+      )}
+      {signup.is_admin ? (
+        isAccount && <span className="hidden lg:block" />
+      ) : (
+        <div className="flex shrink-0 items-center gap-2 lg:justify-end">
           <form action={action} className="flex items-center gap-2" aria-label={`${label} 처리`}>
             <input type="hidden" name="target" value={signup.id} />
             {signup.status !== "approved" && (
@@ -63,9 +95,9 @@ export function SignupRow({ signup, variant }: { signup: Signup; variant: "pendi
                 name="status"
                 value="approved"
                 disabled={pending}
-                className={variant === "pending" ? primaryButton : quietButton}
+                className={signup.status === "pending" ? primaryButton : quietButton}
               >
-                {variant === "pending" ? "승인" : "다시 승인"}
+                {signup.status === "rejected" ? "다시 승인" : "승인"}
               </button>
             )}
             {signup.status !== "rejected" && (
@@ -127,4 +159,10 @@ function DeleteAccountButton({ signup, label }: { signup: Signup; label: string 
       </dialog>
     </>
   );
+}
+
+// 상태 점: 승인됨 = 채운 점, 대기 = 옅은 점, 거절됨 = 빈 동그라미 (색 없이 모양으로 구분)
+function StatusDot({ status }: { status: Signup["status"] }) {
+  const shape = status === "approved" ? "bg-text" : status === "pending" ? "bg-text-muted" : "border-[1.5px] border-text-muted";
+  return <span aria-hidden="true" className={`mr-1.5 inline-block size-[7px] rounded-full align-middle ${shape}`} />;
 }
