@@ -124,3 +124,16 @@ export function computeStats(posts: { created_at: string; tags: string[] }[], no
     calendar: { weeks, monthMarks, maxCount },
   };
 }
+
+// 오늘(todayKey)까지 days일 동안 날짜별 개수 (관리 개요의 가입 막대). 시각은 한국 날짜로 센다.
+export function dailyCounts(isoTimes: string[], todayKey: string, days: number) {
+  const end = Date.parse(todayKey);
+  const keys = Array.from({ length: days }, (_, i) => new Date(end - (days - 1 - i) * 86_400_000).toISOString().slice(0, 10));
+  const counts = new Map(keys.map((k) => [k, 0]));
+  for (const iso of isoTimes) {
+    const key = seoulDayKey(new Date(iso));
+    const n = counts.get(key);
+    if (n !== undefined) counts.set(key, n + 1);
+  }
+  return keys.map((day) => ({ day, count: counts.get(day) ?? 0 }));
+}
