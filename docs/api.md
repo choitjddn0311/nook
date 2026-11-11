@@ -6,7 +6,7 @@ Nook에는 다른 앱이 가져다 쓰는 공개 REST API가 없습니다. 대�
 |---|---|---|---|
 | [HTTP 주소](#3-http-주소) | 3 | 브라우저 | `src/app/**/route.ts` |
 | [서버 동작](#4-서버-동작-server-actions) | 25 | Nook 화면 | `src/app/**/actions.ts` |
-| [데이터베이스](#5-데이터베이스) | 표 8, 함수 19, Storage 버킷 1 | 서버 동작, Edge Function | `supabase/migrations/` |
+| [데이터베이스](#5-데이터베이스) | 표 8, 함수 20, Storage 버킷 1 | 서버 동작, Edge Function | `supabase/migrations/` |
 | [Edge Function](#6-edge-function) · [예약 작업](#7-예약-작업) | 2 · 3 | DB 예약 작업 | `supabase/functions/` |
 
 > 기준: `main` 브랜치, 2026-11-08. 코드를 바꾸면 같은 PR에서 이 문서도 고칩니다([9번](#9-문서-유지-규칙)).
@@ -73,6 +73,8 @@ Next.js는 Vercel(dub1), Supabase는 eu-west-1(아일랜드)에 있습니다.
 ### 화면 안내: proxy (`src/lib/supabase/proxy.ts`)
 
 모든 요청 앞에서 로그인 토큰을 갱신하고 경로를 안내합니다. **안내일 뿐 잠금이 아닙니다.** 잠금은 DB가 합니다.
+
+승인 여부는 토큰의 `account_status` 값(`custom_access_token_hook`이 넣음)으로 먼저 봅니다. proxy는 서울에서 돌아서 아일랜드 DB를 묻는 데 0.3초 넘게 걸리기 때문입니다. 값이 `approved`가 아닐 때만 `profiles.status`를 읽고, 방금 승인됐으면 토큰을 새로 받습니다. 그래서 승인 뒤 **거절**로 바뀐 계정은 토큰이 새로 발급될 때까지(최대 1시간) 화면 안내가 늦을 수 있습니다. 데이터는 RLS가 바로 막습니다.
 
 | 경로 | 비로그인 | 로그인 · 승인 전 | 로그인 · 승인됨 |
 |---|---|---|---|
@@ -347,7 +349,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `is_admin` | boolean | |
 | `created_at` · `approved_at` · `onboarded_at` | timestamptz | `onboarded_at`: 사용법 안내를 본 때 |
 
-권한: 본인 행 **읽기만**. 상태는 관리자 함수로만 바뀝니다.
+권한: 본인 행 **읽기만**. 상태는 관리자 함수로만 바뀝니다. 토큰 발급 훅(`supabase_auth_admin`)은 `id`·`status` 칸만 읽을 수 있습니다.
 
 #### `account_recovery`: 복구 코드
 | 칸 | 설명 |
@@ -430,6 +432,7 @@ Google 로그인에서 돌아오는 곳입니다. 받은 `code`를 로그인 세
 | `handle_new_user()` | `auth.users`에 새 계정이 생기면 `profiles`를 `pending`으로 만드는 트리거 |
 | `set_updated_at()` | `posts`의 `updated_at` 트리거 |
 | `issue_recovery_code(target)` | 복구 코드를 만들어 해시만 저장. 위 두 복구 함수만 씀 |
+| `custom_access_token_hook(event)` | Supabase Auth가 토큰을 발급할 때 부름(`supabase_auth_admin`만, security definer 아님). `profiles.status`를 `account_status` claim으로 넣음(없으면 `pending`). 대시보드 Authentication → Hooks에서 켬 |
 
 날짜 규칙: "n개월 전 같은 날"은 그 달에 그날이 없으면 그 달의 마지막 날입니다(3월 31일의 한 달 전 → 2월 28일 또는 29일). 화면(`src/lib/on-this-day.ts`)과 DB(`push_targets`)가 같은 규칙을 씁니다.
 
