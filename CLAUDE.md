@@ -16,7 +16,7 @@
 | `docs/architecture.md` | 서버 동작·DB·인증·파일 저장·알림을 건드릴 때 (스택, 코드 위치, 데이터·보안 세부) |
 | `docs/api.md` | 서버 동작·HTTP 주소·DB 함수·Edge Function의 입력·출력·권한을 확인하거나 바꿀 때 |
 | `docs/roadmap.md` | 다음 작업을 정하거나 지난 결정을 찾을 때 (단계 표, 남은 공개 전 과제) |
-| `docs/development/HANDOFF.md` | 새 작업·새 세션을 시작할 때 (지금 상태, 미해결 문제, 다음 작업) |
+| `docs/development/SESSION_HANDOFF.md` | 새 작업·새 세션을 시작할 때 (지금 상태, 미해결 문제, 다음 작업) |
 | `docs/development/CONTEXT_GUIDE.md` | 컨텍스트·개발 이력 관리 방법이 헷갈릴 때 |
 
 ## 우선순위 (충돌하면 이 순서)
@@ -47,9 +47,9 @@
 - 개발·시험은 가짜 데이터·시험 계정으로만 하고, 끝나면 지운다.
 
 ## 컨텍스트 관리 (기준: `docs/development/CONTEXT_GUIDE.md`)
-1. 새 개발 작업을 시작할 때 메모리와 `docs/development/HANDOFF.md`를 확인한다.
-2. 주요 개발 단계가 끝나면(PR 병합 등) 진행 상황을 `HANDOFF.md`와 메모리에 반영한다.
-3. 세션 초기화를 요청받거나 새 작업으로 넘어갈 때는 `HANDOFF.md`가 최신인지 확인한다.
+1. 새 개발 작업을 시작할 때 메모리와 `docs/development/SESSION_HANDOFF.md`를 확인한다.
+2. 주요 개발 단계가 끝나면(PR 병합 등) 진행 상황을 `SESSION_HANDOFF.md`와 메모리에 반영한다.
+3. 세션 초기화를 요청받거나 새 작업으로 넘어갈 때는 `SESSION_HANDOFF.md`가 최신인지 확인한다.
 4. 사용자가 `/clear`를 하기 전에는 중요한 작업 내용이 문서에 저장됐는지 확인하도록 안내한다.
 5. 같은 작업을 이어갈 때는 불필요하게 세션 초기화를 권하지 않는다.
 6. 파일 전체 출력, 반복적인 프로젝트 분석, 장황한 설명을 피한다.
