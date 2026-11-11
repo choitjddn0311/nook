@@ -48,13 +48,20 @@ export async function updateSession(request: NextRequest) {
   if (isLoggedIn && isPublic) return redirectKeepingCookies(request, response, "/");
 
   if (isLoggedIn) {
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("status")
-      .eq("id", String(data?.claims?.sub))
-      .maybeSingle();
-    // 프로필을 읽지 못한 경우(일시적 오류)는 그대로 보낸다. 데이터는 RLS가 막는다.
-    const approved = error ? true : profile?.status === "approved";
+    // 승인 상태는 토큰 안에 있다(DB 훅 custom_access_token_hook). 서울에서 아일랜드 DB까지 묻지 않아도 된다.
+    let approved = data?.claims?.account_status === "approved";
+    // 토큰에 승인 표시가 없을 때만 DB를 확인한다 (승인 대기 중, 훅 켜기 전에 받은 토큰, 방금 승인됨)
+    if (!approved) {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("status")
+        .eq("id", String(data?.claims?.sub))
+        .maybeSingle();
+      // 프로필을 읽지 못한 경우(일시적 오류)는 그대로 보낸다. 데이터는 RLS가 막는다.
+      approved = error ? true : profile?.status === "approved";
+      // 방금 승인됐으면 토큰을 새로 받아 다음 요청부터 DB를 묻지 않게 한다
+      if (profile?.status === "approved") await supabase.auth.refreshSession();
+    }
     const onWaiting = pathname === WAITING_PATH;
     if (!approved && !onWaiting) return redirectKeepingCookies(request, response, WAITING_PATH);
     if (approved && onWaiting) return redirectKeepingCookies(request, response, "/");
