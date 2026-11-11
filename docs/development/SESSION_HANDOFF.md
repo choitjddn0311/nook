@@ -1,7 +1,7 @@
 # Nook 인수인계 (HANDOFF)
 
 > 지금 상태를 한 곳에. 주요 단계가 끝날 때마다 고친다(`docs/development/CONTEXT_GUIDE.md`).
-> 기준: 2026-11-09, main 298c011 + PR #45(문서 분리) 병합 대기
+> 기준: 2026-11-11, main cdcafa4 (PR #45까지 병합)
 
 ## 1. 목적과 구조
 - **Nook**: "오늘의 생각을 다시 만나는 곳". 짧게 정리한 생각을 한 달·6개월·1년 뒤 같은 날 다시 만나게 하는 개인 기록장(일기·메모). 원래 1인용 → 지금은 가입 신청 + 관리자 승인으로 여러 사람이 각자 공간으로 쓰는 구조(3차 공개 준비).
@@ -11,7 +11,7 @@
   - `src/proxy.ts` → `src/lib/supabase/proxy.ts`: 로그인·승인 안내(잠금은 DB가 함)
   - `src/lib/` 공용 로직, `src/components/` 화면 조각
   - `supabase/migrations/` (14개, 파일 이름 = 실제 적용 번호), `supabase/functions/` Edge Function 2개(`send-notifications`, `cleanup-orphan-images`)
-  - 문서: `CLAUDE.md`(개요·핵심 규칙, 45줄), 필요할 때만 `docs/design.md`(디자인·접근성), `docs/architecture.md`(스택·데이터·보안), `docs/api.md`(API 명세서), `docs/roadmap.md`(단계·남은 과제) — PR #45에서 분리(병합 대기)
+  - 문서: `CLAUDE.md`(개요·핵심 규칙, 45줄), 필요할 때만 `docs/design.md`(디자인·접근성), `docs/architecture.md`(스택·데이터·보안), `docs/api.md`(API 명세서), `docs/roadmap.md`(단계·남은 과제) — PR #45에서 분리
 
 ## 2. 기술 스택
 - Next.js 16.4 App Router + TypeScript + Tailwind v4, React 19. `cacheComponents` 켜짐(요청 데이터는 Suspense 안), `refresh()`(next/cache)로 서버 동작 뒤 다시 그림
@@ -21,7 +21,7 @@
 - Markdown: react-markdown + remark-gfm + remark-breaks, 폰트 Pretendard 하나
 - 도구: Playwright MCP(화면 시험), Supabase MCP(SQL·마이그레이션), Context7(문서), Supabase CLI(`npx supabase@latest`, 터미널에서 로그인 필요, 변경은 `--yes`)
 
-## 3. 구현 완료 기능 (1~21단계 + 21.5 일부, PR #1~#44)
+## 3. 구현 완료 기능 (1~21단계 + 21.5 일부, PR #1~#45)
 - 글: 제목 선택·본문, 자동 저장(+오프라인 기기 임시본), 일반/Markdown, 태그, 즐겨찾기, 검색, 글자 수
 - 다시 보기: 지난 생각(한 달·6개월·n년 전 오늘), 아무 글 보기, 덧붙인 생각(원글은 그대로)
 - 마이페이지: 생각 통계(활동 달력·월별·태그), 계정 관리(비밀번호, 복구 코드, 내보내기 md/json, 탈퇴), **알림**
@@ -34,7 +34,7 @@
 - API 명세서 `docs/api.md` (서버 동작 25, DB 함수 19, 표 8, Edge Function 2, 예약 작업 3)
 
 ## 4. 현재 진행 중
-- PR #45: CLAUDE.md를 개요·핵심 규칙만 남기고 세부를 docs로 분리, 컨텍스트 관리 규칙과 이 문서 추가 (병합 대기)
+- 없음. 모든 작업 병합됨(마지막 #45: CLAUDE.md 분리, 컨텍스트 관리 규칙과 이 문서)
 
 ## 5. 설계 결정과 규칙 (핵심은 CLAUDE.md, 세부는 docs/*.md)
 - 작업 흐름: 브랜치 → PR → 검증 → **사용자가 "병합"이라고 해야** 병합. DB 구조 변경은 **SQL을 먼저 보여 주고 확인**. 큰 작업은 계획 먼저. 설명은 한국어, 쉽게
@@ -47,8 +47,8 @@
 - 주의(함정): React 19 폼 액션은 끝나면 폼을 되돌림(바로 저장 UI는 객체로 서버 동작 호출), 개발 모드 effect 두 번 실행, 375px에서 Next 개발 배지가 왼쪽 아래 버튼을 가림(배포본엔 없음), `"use server"` 파일은 async 함수만 export, 강제 푸시는 자동 모드가 막음(충돌은 merge로 해결)
 
 ## 6. 해결되지 않은 문제 / 미확인
-- PC Chrome(Mac)에서 푸시 알림이 오지 않음: 서버·암호화 정상, `chrome://gcm-internals` 수신 기록 없음 → 그 PC/네트워크 문제로 보고 보류. 아이폰·안드로이드는 정상
-- 실제 폰에서 아직 안 해 본 것: 아이폰 사진(HEIC) 올리기, 안내 창에서 '알림 켜기' → 권한 → 구독
+- 실제 폰에서 아직 안 해 본 것: 안내 창에서 '알림 켜기' → 권한 → 구독
+- (해결, 2026-11-11) Mac PC Chrome 푸시 알림 도착 확인 → 아이폰·안드로이드·Mac 모두 정상. 아이폰 사진 올리기도 실기기에서 정상
 - `cleanup-orphan-images`가 실제 고아 파일을 지우는 것(1시간 지난 파일만 대상이라 미시험)
 - Supabase **Allow new users to sign up이 켜져 있음**(실제 사람들이 가입·승인돼 있음). 출시 전이라 끌지 사용자 결정 대기
 - Google Search Console: 확인 파일은 배포됨, 사용자가 '확인'·사이트맵 제출을 했는지 모름. 네이버는 안 하기로 함
@@ -56,7 +56,7 @@
 - 법·운영 과제(21.5) 대부분 미결: 법률 검토, 접속기록 보관, 거절 계정 30일 삭제 방법, 글 열람 약속, 유출 대응, 위탁 정보 확인, 시행일을 실제 공개일로
 
 ## 7. 다음 작업 후보
-1. 폰에서 사진(HEIC)·알림 안내 창 실제 확인 결과 받기, 문제 있으면 수정
+1. 폰에서 알림 안내 창('알림 켜기' → 구독) 실제 확인 결과 받기, 문제 있으면 수정
 2. 21.5 법·운영 과제 (대부분 사용자 결정) — docs/roadmap.md 21.5 표
 3. 선택: 사용법 다시 보기, 카카오 로그인(보류), 사진 묶음 내보내기(zip)
 4. 도메인 구입(사용자 결정: 가장 마지막) → `src/lib/site.ts` SITE_URL, Supabase·Google 주소, Search Console 재등록, 알림 다시 켜기
