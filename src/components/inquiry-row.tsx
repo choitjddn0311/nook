@@ -4,14 +4,9 @@ import { useActionState, useRef } from "react";
 import { updateInquiry, type InquiryResult } from "@/app/admin/actions";
 import { primaryButton, quietButton, secondaryButton } from "@/lib/button-styles";
 import type { Inquiry } from "@/lib/admin";
+// 서버와 브라우저의 Intl이 오전/오후를 다르게 써서(PM ↔ 오후) 화면이 어긋나지 않도록 직접 붙이는 함수를 쓴다
+import { formatPostDate, formatPostTime } from "@/lib/format";
 
-const dateFormat = new Intl.DateTimeFormat("ko-KR", {
-  timeZone: "Asia/Seoul",
-  month: "long",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
 
 // 관리자 대시보드의 문의 한 줄: 보낸 이메일, 때, 내용 + 답장하기(메일 앱) · 답장 완료 · 삭제
 export function InquiryRow({ inquiry }: { inquiry: Inquiry }) {
@@ -24,7 +19,7 @@ export function InquiryRow({ inquiry }: { inquiry: Inquiry }) {
   return (
     <li className="py-4">
       <p className="text-sm text-text-muted">
-        <span className="break-all text-text">{inquiry.email}</span> · {dateFormat.format(new Date(inquiry.created_at))}
+        <span className="break-all text-text">{inquiry.email}</span> · {formatPostDate(inquiry.created_at)} {formatPostTime(inquiry.created_at)}
         {answered && " · 답장함"}
       </p>
       <p className={`mt-2 text-base leading-relaxed whitespace-pre-wrap break-words ${answered ? "text-text-muted" : "text-text"}`}>

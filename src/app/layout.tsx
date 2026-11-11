@@ -56,9 +56,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="flex min-h-full flex-col">
+      {/* group/body: 관리 화면(data-admin)은 자기 틀(사이드바)을 쓰므로 일반 헤더를 숨기고 본문 폭 제한을 푼다 */}
+      <body className="group/body flex min-h-full flex-col">
         <SiteHeader />
-        <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 sm:px-6">{children}</main>
+        <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 sm:px-6 group-has-[[data-admin]]/body:max-w-none group-has-[[data-admin]]/body:px-0">{children}</main>
       </body>
     </html>
   );

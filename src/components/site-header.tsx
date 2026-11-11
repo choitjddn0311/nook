@@ -7,7 +7,7 @@ import { getAccount } from "@/lib/account";
 
 export function SiteHeader() {
   return (
-    <header className="mx-auto flex w-full max-w-2xl items-center justify-between px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 sm:px-4 sm:pt-[max(1.25rem,env(safe-area-inset-top))]">
+    <header className="mx-auto flex w-full max-w-2xl group-has-[[data-admin]]/body:hidden items-center justify-between px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 sm:px-4 sm:pt-[max(1.25rem,env(safe-area-inset-top))]">
       <Link
         href="/"
         aria-label="Nook"
