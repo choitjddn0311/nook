@@ -54,7 +54,7 @@ export function getPostHeadline(title: string | null, rawContent: string, format
   const content = format === "markdown" ? stripMarkdown(rawContent) : rawContent;
   const lines = content.split("\n").map((l) => l.replace(/\s+/g, " ").trim());
   if (title?.trim()) {
-    return { headline: title.trim(), preview: lines.filter(Boolean).join(" ") };
+    return { headline: title.trim(), preview: clip(lines.filter(Boolean).join(" ")) };
   }
   const firstIndex = lines.findIndex(Boolean);
   const headline = firstIndex >= 0 ? lines[firstIndex] : "";
@@ -62,7 +62,15 @@ export function getPostHeadline(title: string | null, rawContent: string, format
     .slice(firstIndex + 1)
     .filter(Boolean)
     .join(" ");
-  return { headline, preview };
+  return { headline: clip(headline), preview: clip(preview) };
+}
+
+// 목록은 제목 1줄·미리보기 2줄만 보여 준다 → 본문 전체를 폰으로 보내지 않게 자른다.
+// 글자 단위로 잘라 이모지가 반쪽으로 깨지지 않게 한다.
+const CLIP_CHARS = 200;
+function clip(text: string) {
+  const chars = Array.from(text);
+  return chars.length > CLIP_CHARS ? chars.slice(0, CLIP_CHARS).join("") : text;
 }
 
 // "오후 11:59" — 같은 날 쓴 글을 구분할 때 (한국 시간)
