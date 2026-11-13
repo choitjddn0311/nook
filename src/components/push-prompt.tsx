@@ -43,7 +43,8 @@ function clearJustWrote() {
 
 async function shouldAsk() {
   if (!justWrote()) return false; // 방금 쓴 글이 아니면 묻지 않는다 (새로고침·목록에서 온 경우)
-  if (!supportsPush() || Notification.permission !== "default") return false; // 아이폰 Safari 탭, 이미 허용·거부
+  // 아이폰 Safari 탭이거나 거부됨. '허용'은 묻는다: 다른 계정이 켰다가 로그아웃해 이 계정은 구독이 없을 수 있다
+  if (!supportsPush() || Notification.permission === "denied") return false;
   if (await getDeviceSubscription().catch(() => null)) return false;
   const d = readDismissed();
   if (!d) return true;
